@@ -4,8 +4,8 @@ use std::path::Path;
 use std::ptr;
 use std::str;
 
-extern crate gl;
 use gl::types::*;
+use na::Matrix4;
 
 use super::binding::Bindable;
 
@@ -22,7 +22,10 @@ pub struct ShaderProgram {
     pub id: GLuint,
 }
 
-// TODO: Have a think about how uniforms are going to work
+/// Encodes a uniform value that can be passed to a shader program
+pub enum Uniform {
+    Mat4(Matrix4<f32>),
+}
 
 impl Shader {
     fn from_path(path: &Path, shader_type: GLenum) -> Shader {
@@ -76,6 +79,22 @@ impl ShaderProgram {
 
         ShaderProgram { id: shader_program }
     }
+
+    fn lookup_uniform_location(&self, name: &str) -> GLint {
+        unsafe {
+            let name_as_cstring = ffi::CString::new(name).unwrap();
+            gl::GetUniformLocation(self.id, name_as_cstring.as_ptr())
+        }
+    }
+
+    pub fn write_uniform(&self, name: &str, value: Uniform) {
+        let position = self.lookup_uniform_location(name);
+        unsafe {
+            match value {
+                Uniform::Mat4(m) => gl::UniformMatrix4fv(position, 1, gl::FALSE, m.as_ptr()),
+            }
+        }
+    }
 }
 
 impl Drop for ShaderProgram {
@@ -94,6 +113,7 @@ impl Bindable<'_> for ShaderProgram {
     }
 
     fn unbind(&self) {
+        // TODO: Consider resetting uniform values here
         unsafe {
             gl::UseProgram(0);
         }

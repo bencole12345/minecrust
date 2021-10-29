@@ -1,10 +1,9 @@
 use std::mem;
 use std::os;
 
-extern crate gl;
 use gl::types::*;
 
-use super::binding::Bindable;
+use crate::engine::binding::Bindable;
 
 /// Encodes information about the offsets of different data within a buffer of
 /// vertex data
@@ -63,9 +62,7 @@ impl ModelData {
             gl::BufferData(
                 gl::ARRAY_BUFFER,
                 total_buffer_size_bytes as GLsizeiptr,
-                // &vertex_data[0] as *const f32 as *const os::raw::c_void,
                 vertex_data.as_ptr() as *const f32 as *const os::raw::c_void,
-                // &vertices[0] as *const f32 as *const os::raw::c_void,
                 gl::STATIC_DRAW,
             );
 
@@ -136,7 +133,7 @@ impl Bindable<'_> for ModelData {
         unsafe {
             gl::BindVertexArray(self.vao);
 
-            // TODO: Might not need to call this
+            // TODO: Decide whether this call is needed (deferred until we have multiple VAOs!)
             // gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
         }
     }
