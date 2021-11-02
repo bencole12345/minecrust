@@ -7,14 +7,22 @@ uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 
-out vec4 rotatedNormal;
+out vec4 WorldPosition;
+out vec4 Normal;
+
 
 void main()
 {
-    // TODO: Rotate normal coordinates
     vec4 modelCoords = vec4(aPos, 1.0f);
-    vec4 normalCoords = vec4(aNormal*2.0 + vec3(0.5, 0.5, 0.5), 1.0f);
+    vec4 normalCoords = vec4(aNormal, 0.0f);
 
-    rotatedNormal = normalCoords;
+    // The onscreen position in NDC (normalised device coordinates)
     gl_Position = Projection * View * Model * modelCoords;
+
+    // The current vertex's location in world space
+    WorldPosition = Model * modelCoords;
+
+    // The vertex's normal in world space
+    // TODO: Confirm this rotates without translating
+    Normal = normalize(Model * normalCoords);
 }

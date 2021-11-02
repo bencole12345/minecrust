@@ -12,4 +12,6 @@ pub struct PointLight {
 pub struct GlobalLight {
     // TODO: See if there's a fancier type to guarantee that it's a unit vector
     pub direction: Vector3<f32>,
+    pub colour: Vector3<f32>,
+    pub intensity: f32,
 }

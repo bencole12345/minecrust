@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::ffi;
 use std::fs;
 use std::path::Path;
@@ -5,9 +6,9 @@ use std::ptr;
 use std::str;
 
 use gl::types::*;
-use na::Matrix4;
 
-use super::binding::Bindable;
+use crate::engine::binding::Bindable;
+use crate::engine::uniforms::Uniform;
 
 const LOG_BUFFER_SIZE: usize = 1024;
 
@@ -22,14 +23,10 @@ pub struct ShaderProgram {
     pub id: GLuint,
 }
 
-/// Encodes a uniform value that can be passed to a shader program
-pub enum Uniform {
-    Mat4(Matrix4<f32>),
-}
-
 impl Shader {
     fn from_path(path: &Path, shader_type: GLenum) -> Shader {
         let buffer = fs::read(path).expect("Failed to load shader"); // TODO: Report the bad path
+                                                                     // let buffer_length = buffer.len();
         let buffer_c_str = ffi::CString::new(buffer).unwrap();
 
         let shader_id = unsafe {
@@ -91,6 +88,15 @@ impl ShaderProgram {
         let position = self.lookup_uniform_location(name);
         unsafe {
             match value {
+                Uniform::Float(f) => gl::Uniform1f(position, f),
+                Uniform::FloatArray(fa) => {
+                    gl::Uniform1fv(position, fa.len().try_into().unwrap(), fa.as_ptr())
+                }
+                Uniform::Vec3(v) => gl::Uniform3f(position, v.x, v.y, v.z),
+                // TODO: Confirm that va[0].as_ptr() is right (importantly, that they're definitely contiguous in memory)
+                Uniform::Vec3Array(va) => {
+                    gl::Uniform3fv(position, va.len().try_into().unwrap(), va[0].as_ptr())
+                }
                 Uniform::Mat4(m) => gl::UniformMatrix4fv(position, 1, gl::FALSE, m.as_ptr()),
             }
         }
@@ -137,23 +143,25 @@ fn linked_successfully(shader_program_id: GLuint) -> bool {
 }
 
 fn dump_shader_compile_error(shader: GLuint, path: &Path) {
+    // TODO: This is broken! It fails if the error message is shorter
+    // than the buffer
     let mut info_log = Vec::with_capacity(LOG_BUFFER_SIZE);
     unsafe {
         info_log.set_len(LOG_BUFFER_SIZE - 1);
-        // info_log.set_len(LOG_BUFFER_SIZE);
         gl::GetShaderInfoLog(
             shader,
-            LOG_BUFFER_SIZE as GLsizei,
+            (LOG_BUFFER_SIZE - 1) as usize as GLsizei,
             ptr::null_mut(),
             info_log.as_mut_ptr() as *mut GLchar,
         );
     }
     let path_str = path.to_str().unwrap();
-    let error_str = str::from_utf8(&info_log).unwrap();
-    println!(
-        "Failed to compile shader program {}: {}",
-        path_str, error_str
-    );
+
+    println!("Failed to compile shader program {}, error:", path_str);
+    match str::from_utf8(&info_log) {
+        Ok(s) => eprintln!("{}", s),
+        Err(e) => eprintln!("Err: {}", e),
+    }
 }
 
 fn dump_shader_link_error(
@@ -173,9 +181,13 @@ fn dump_shader_link_error(
     }
     let vertex_shader_path_str = vertex_shader_path.to_str().unwrap();
     let fragment_shader_path_str = fragment_shader_path.to_str().unwrap();
-    let error_str = str::from_utf8(&info_log).unwrap();
+
     println!(
-        "Failed to link shader using vertex shader {} and fragment shader {}, error: {}",
-        vertex_shader_path_str, fragment_shader_path_str, error_str
+        "Failed to link {} and {}, error:",
+        vertex_shader_path_str, fragment_shader_path_str
     );
+    match String::from_utf8(info_log) {
+        Ok(s) => eprintln!("{}", s),
+        Err(e) => eprintln!("{}", e),
+    }
 }
