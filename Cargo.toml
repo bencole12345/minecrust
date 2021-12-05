@@ -10,4 +10,5 @@ authors = ["Ben Cole <bencole12345@gmail.com>"]
 gl = "0.14.0"
 glfw = "0.42.0"
 glm = "0.2.3"
+image = "0.23.14"
 nalgebra = "0.29.0"

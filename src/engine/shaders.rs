@@ -10,17 +10,15 @@ use gl::types::*;
 use crate::engine::binding::Bindable;
 use crate::engine::uniforms::Uniform;
 
-const LOG_BUFFER_SIZE: usize = 1024;
-
 /// Wraps a single shader, such as a vertex shader or a fragment shader.
 struct Shader {
-    pub id: GLuint,
+    id: GLuint,
 }
 
 /// Wraps a linked shader program, consisting of both a vertex shader and a
 /// fragment shader.
 pub struct ShaderProgram {
-    pub id: GLuint,
+    id: GLuint,
 }
 
 impl Shader {
@@ -84,20 +82,29 @@ impl ShaderProgram {
         }
     }
 
-    pub fn write_uniform(&self, name: &str, value: Uniform) {
+    pub fn write_uniform(&self, uniform: Uniform) {
+        let name = uniform.get_name_in_shader();
         let position = self.lookup_uniform_location(name);
         unsafe {
-            match value {
-                Uniform::Float(f) => gl::Uniform1f(position, f),
-                Uniform::FloatArray(fa) => {
-                    gl::Uniform1fv(position, fa.len().try_into().unwrap(), fa.as_ptr())
+            match uniform {
+                Uniform::ModelMatrix(m) | Uniform::ViewMatrix(m) | Uniform::ProjectionMatrix(m) => {
+                    gl::UniformMatrix4fv(position, 1, gl::FALSE, m.as_ptr());
                 }
-                Uniform::Vec3(v) => gl::Uniform3f(position, v.x, v.y, v.z),
-                // TODO: Confirm that va[0].as_ptr() is right (importantly, that they're definitely contiguous in memory)
-                Uniform::Vec3Array(va) => {
-                    gl::Uniform3fv(position, va.len().try_into().unwrap(), va[0].as_ptr())
+                Uniform::PointLightsPositions(va) | Uniform::PointLightsColours(va) => {
+                    gl::Uniform3fv(position, va.len().try_into().unwrap(), va[0].as_ptr());
                 }
-                Uniform::Mat4(m) => gl::UniformMatrix4fv(position, 1, gl::FALSE, m.as_ptr()),
+                Uniform::PointLightsIntensities(v) => {
+                    gl::Uniform1fv(position, v.len().try_into().unwrap(), v.as_ptr());
+                }
+                Uniform::GlobalIlluminantDirection(v) | Uniform::GlobalIlluminantColour(v) => {
+                    gl::Uniform3f(position, v.x, v.y, v.z);
+                }
+                Uniform::GlobalIlluminantIntensity(intensity) => {
+                    gl::Uniform1f(position, intensity);
+                }
+                Uniform::CubeTexture(texture) => {
+                    gl::Uniform1i(position, texture.texture_id as GLint);
+                }
             }
         }
     }
