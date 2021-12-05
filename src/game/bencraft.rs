@@ -26,8 +26,13 @@ pub fn run_game() {
         lighting::PointLight {
             colour: Vector3::new(0.3, 0.3, 1.0),
             intensity: 3.5,
-            position: Point3::new(-1.0, 2.5, -3.0)
-        }
+            position: Point3::new(-1.0, 2.5, -3.0),
+        },
+        lighting::PointLight {
+            colour: Vector3::new(1.0, 1.0, 1.0),
+            intensity: 5.0,
+            position: Point3::new(0.0, -3.0, -8.0),
+        },
     ];
 
     let global_light = lighting::GlobalLight {

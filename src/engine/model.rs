@@ -98,6 +98,7 @@ impl ModelData {
                     vertex_data_info.stride_bytes() as i32,
                     (offset * float_size as u32) as *const os::raw::c_void,
                 );
+                gl::EnableVertexAttribArray(2);
             }
 
             // Unbind the buffer and vertex array object now that we're done

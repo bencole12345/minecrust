@@ -33,18 +33,29 @@ struct GlobalIlluminant {
 
 in vec4 WorldPosition;
 in vec4 Normal;
+in vec2 TexCoord;
 
 uniform GlobalIlluminant globalIlluminant;
 uniform PointLights pointLights;
+uniform sampler2D cubesTexture;
 
 out vec4 FragColor;
 
 
 /**
- * Calculates the additive radiance component resulting from the scene's global
- * illuminant.
+ * Determines the base colour by sampling the cubes texture
  */
-vec3 radianceFromGlobalIlluminant()
+vec4 baseColour()
+{
+    return texture(cubesTexture, TexCoord);
+}
+
+
+/**
+ * Calculates the additive irradiance component resulting from the scene's
+ * global illuminant.
+ */
+vec3 irradianceFromGlobalIlluminant()
 {
     float cosTheta = dot(Normal.xyz, globalIlluminant.direction);
     return globalIlluminant.intensity
@@ -53,10 +64,10 @@ vec3 radianceFromGlobalIlluminant()
 }
 
 /**
- * Calculates the additive radiance component resulting from one of the scene's
- * point light sources.
+ * Calculates the additive irradiance component resulting from one of the
+ * scene's point light sources.
  */
-vec3 radianceFromPointLight(int i)
+vec3 irradianceFromPointLight(int i)
 {
     vec3 position = pointLights.positions[i];
     vec3 colour = pointLights.colours[i];
@@ -81,18 +92,21 @@ vec3 gammaEncode(vec3 colour)
 
 void main()
 {
-    vec3 radiance = vec3(0.0);
+    vec3 irradiance = vec3(0.0);
 
     // Global illumination
-    radiance += radianceFromGlobalIlluminant();
+    irradiance += irradianceFromGlobalIlluminant();
 
     // Local illumination from each point light source
     for (int i = 0; i < NUM_POINT_LIGHT_SOURCES; i++) {
-        radiance += radianceFromPointLight(i);
+        irradiance += irradianceFromPointLight(i);
     }
+
+    vec4 base = baseColour();
+    vec3 radiance = base.rgb * irradiance;
 
     // Prepare colours for displaying
     vec3 toneMapped = toneMap(radiance);
     vec3 gammaEncoded = gammaEncode(toneMapped);
-    FragColor = vec4(gammaEncoded, 1.0);
+    FragColor = vec4(gammaEncoded, base.a);
 }
