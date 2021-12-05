@@ -150,25 +150,13 @@ fn linked_successfully(shader_program_id: GLuint) -> bool {
 }
 
 fn dump_shader_compile_error(shader: GLuint, path: &Path) {
-    // TODO: This is broken! It fails if the error message is shorter
-    // than the buffer
-    let mut info_log = Vec::with_capacity(LOG_BUFFER_SIZE);
-    unsafe {
-        info_log.set_len(LOG_BUFFER_SIZE - 1);
-        gl::GetShaderInfoLog(
-            shader,
-            (LOG_BUFFER_SIZE - 1) as usize as GLsizei,
-            ptr::null_mut(),
-            info_log.as_mut_ptr() as *mut GLchar,
-        );
-    }
+    let error_log = read_error_log(shader);
     let path_str = path.to_str().unwrap();
 
-    println!("Failed to compile shader program {}, error:", path_str);
-    match str::from_utf8(&info_log) {
-        Ok(s) => eprintln!("{}", s),
-        Err(e) => eprintln!("Err: {}", e),
-    }
+    println!(
+        "Failed to compile shader program {}, error:\n{}",
+        path_str, error_log
+    );
 }
 
 fn dump_shader_link_error(
@@ -176,25 +164,36 @@ fn dump_shader_link_error(
     vertex_shader_path: &Path,
     fragment_shader_path: &Path,
 ) {
-    let mut info_log = Vec::with_capacity(LOG_BUFFER_SIZE);
-    unsafe {
-        info_log.set_len(LOG_BUFFER_SIZE - 1);
-        gl::GetProgramInfoLog(
-            shader_program,
-            LOG_BUFFER_SIZE as i32,
-            ptr::null_mut(),
-            info_log.as_mut_ptr() as *mut GLchar,
-        );
-    }
+    let error_log = read_error_log(shader_program);
     let vertex_shader_path_str = vertex_shader_path.to_str().unwrap();
     let fragment_shader_path_str = fragment_shader_path.to_str().unwrap();
 
     println!(
-        "Failed to link {} and {}, error:",
-        vertex_shader_path_str, fragment_shader_path_str
+        "Failed to link {} and {}, error:\n{}",
+        vertex_shader_path_str, fragment_shader_path_str, error_log
     );
-    match String::from_utf8(info_log) {
-        Ok(s) => eprintln!("{}", s),
-        Err(e) => eprintln!("{}", e),
+}
+
+fn read_error_log(shader_program: GLuint) -> String {
+    // Read error log length
+    let mut len: GLint = 0;
+    unsafe {
+        gl::GetShaderiv(shader_program, gl::INFO_LOG_LENGTH, &mut len);
     }
+
+    // Create a buffer of that length and fill it with null characters
+    let mut buffer: Vec<u8> = Vec::with_capacity(len as usize + 1);
+    buffer.extend([b'\0'].iter().cycle().take(len as usize));
+
+    // Read the info log from OpenGL
+    unsafe {
+        gl::GetShaderInfoLog(
+            shader_program,
+            len,
+            ptr::null_mut(),
+            buffer.as_mut_ptr() as *mut GLchar,
+        );
+    }
+
+    String::from_utf8(buffer).expect("Invalid UTF-8 encoding in OpenGL info log")
 }
