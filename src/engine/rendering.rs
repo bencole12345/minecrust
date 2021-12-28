@@ -1,15 +1,15 @@
 use std::cmp;
-use std::env;
-use std::path::PathBuf;
 
 use na::Vector3;
+use packer::Packer;
 
 use crate::engine::binding::BindGuard;
 use crate::engine::camera::Camera;
 use crate::engine::lighting::{GlobalLight, PointLight};
+use crate::engine::resources;
 use crate::engine::scene::{Scene, SceneObject};
-use crate::engine::shaders::ShaderProgram;
-use crate::engine::texture::Texture;
+use crate::engine::shaders::{Shader, ShaderProgram, ShaderType};
+use crate::engine::texture::{Texture, ImageFileFormat};
 use crate::engine::uniforms::Uniform;
 
 const BACKGROUND_R: f32 = 0.2;
@@ -18,10 +18,6 @@ const BACKGROUND_B: f32 = 0.2;
 
 const MAX_POINT_LIGHTS: usize = 4;
 
-
-// TODO: Load everything in here using std::include_bytes
-
-
 pub struct Renderer {
     cubes_shader_program: ShaderProgram,
     cubes_texture: Texture,
@@ -29,19 +25,19 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new() -> Renderer {
-        let resources_dir = get_resources_dir();
+        let cubes_vertex_shader = Shader::new(
+            resources::Shaders::get("cubes.vert").unwrap(),
+            ShaderType::VertexShader,
+            "cubes.vert",
+        );
+        let cubes_fragment_shader = Shader::new(
+            resources::Shaders::get("cubes.frag").unwrap(),
+            ShaderType::FragmentShader,
+            "cubes.frag",
+        );
+        let cubes_shader_program = ShaderProgram::new(cubes_vertex_shader, cubes_fragment_shader);
 
-        // Load the cubes shader program
-        let shaders_dir = resources_dir.join("shaders");
-        let vertex_shader = shaders_dir.join("cubes.vert");
-        let fragment_shader = shaders_dir.join("cubes.frag");
-        let cubes_shader_program =
-            ShaderProgram::from_vertex_fragment_paths(&vertex_shader, &fragment_shader);
-
-        // Load the cubes texture
-        let textures_dir = resources_dir.join("textures");
-        let cubes_texture_location = textures_dir.join("cube.png");
-        let cubes_texture = Texture::from_path(&cubes_texture_location);
+        let cubes_texture = Texture::new(resources::Textures::get("cube.png").unwrap(), ImageFileFormat::Png);
 
         Renderer {
             cubes_shader_program,
@@ -93,11 +89,6 @@ impl Renderer {
             gl::DrawArrays(gl::TRIANGLES, first_index, num_vertices);
         }
     }
-}
-
-fn get_resources_dir() -> Box<PathBuf> {
-    let dir = env::current_dir().unwrap();
-    Box::new(dir)
 }
 
 fn write_camera_uniforms(program: &ShaderProgram, camera: &Camera) {

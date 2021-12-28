@@ -1,7 +1,5 @@
 use std::convert::TryInto;
 use std::ffi;
-use std::fs;
-use std::path::Path;
 use std::ptr;
 use std::str;
 
@@ -10,9 +8,17 @@ use gl::types::*;
 use crate::engine::binding::Bindable;
 use crate::engine::uniforms::Uniform;
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum ShaderType {
+    VertexShader,
+    FragmentShader,
+}
+
 /// Wraps a single shader, such as a vertex shader or a fragment shader.
-struct Shader {
+pub struct Shader {
     id: GLuint,
+    shader_type: ShaderType,
+    debug_name: &'static str,
 }
 
 /// Wraps a linked shader program, consisting of both a vertex shader and a
@@ -22,24 +28,29 @@ pub struct ShaderProgram {
 }
 
 impl Shader {
-    fn from_path(path: &Path, shader_type: GLenum) -> Shader {
-        let buffer = fs::read(path).expect("Failed to load shader"); // TODO: Report the bad path
-                                                                     // let buffer_length = buffer.len();
-        let buffer_c_str = ffi::CString::new(buffer).unwrap();
-
-        let shader_id = unsafe {
-            let id = gl::CreateShader(shader_type);
-            gl::ShaderSource(id, 1, &buffer_c_str.as_ptr(), ptr::null());
+    pub fn new(code: &[u8], shader_type: ShaderType, debug_name: &'static str) -> Self {
+        let code = ffi::CString::new(code).unwrap();
+        let gl_shader_type = match &shader_type {
+            ShaderType::VertexShader => gl::VERTEX_SHADER,
+            ShaderType::FragmentShader => gl::FRAGMENT_SHADER,
+        };
+        let id = unsafe {
+            let id = gl::CreateShader(gl_shader_type);
+            gl::ShaderSource(id, 1, &code.as_ptr(), ptr::null());
             gl::CompileShader(id);
             id
         };
 
-        if !compiled_successfully(shader_id) {
-            dump_shader_compile_error(shader_id, path);
+        if !compiled_successfully(id) {
+            dump_shader_compile_error(id, debug_name);
             panic!("Failed to compile shader");
         }
 
-        Shader { id: shader_id }
+        Shader {
+            id,
+            shader_type,
+            debug_name,
+        }
     }
 }
 
@@ -52,14 +63,18 @@ impl Drop for Shader {
 }
 
 impl ShaderProgram {
-    pub fn from_vertex_fragment_paths(
-        vertex_shader_path: &Path,
-        fragment_shader_path: &Path,
-    ) -> ShaderProgram {
-        let vertex_shader = Shader::from_path(vertex_shader_path, gl::VERTEX_SHADER);
-        let fragment_shader = Shader::from_path(fragment_shader_path, gl::FRAGMENT_SHADER);
+    pub fn new(vertex_shader: Shader, fragment_shader: Shader) -> Self {
+        if vertex_shader.shader_type != ShaderType::VertexShader {
+            panic!("Bad vertex shader type: {:?}", vertex_shader.shader_type);
+        }
+        if fragment_shader.shader_type != ShaderType::FragmentShader {
+            panic!(
+                "Bad fragment shader type: {:?}",
+                fragment_shader.shader_type
+            );
+        }
 
-        let shader_program = unsafe {
+        let id = unsafe {
             let id = gl::CreateProgram();
             gl::AttachShader(id, vertex_shader.id);
             gl::AttachShader(id, fragment_shader.id);
@@ -67,12 +82,12 @@ impl ShaderProgram {
             id
         };
 
-        if !linked_successfully(shader_program) {
-            dump_shader_link_error(shader_program, vertex_shader_path, fragment_shader_path);
+        if !linked_successfully(id) {
+            dump_shader_link_error(id, vertex_shader.debug_name, fragment_shader.debug_name);
             panic!("Failed to link shader program");
         }
 
-        ShaderProgram { id: shader_program }
+        ShaderProgram { id }
     }
 
     fn lookup_uniform_location(&self, name: &str) -> GLint {
@@ -149,28 +164,23 @@ fn linked_successfully(shader_program_id: GLuint) -> bool {
     success == gl::TRUE as GLint
 }
 
-fn dump_shader_compile_error(shader: GLuint, path: &Path) {
+fn dump_shader_compile_error(shader: GLuint, debug_name: &str) {
     let error_log = read_error_log(shader);
-    let path_str = path.to_str().unwrap();
-
     println!(
         "Failed to compile shader program {}, error:\n{}",
-        path_str, error_log
+        debug_name, error_log
     );
 }
 
 fn dump_shader_link_error(
-    shader_program: GLuint,
-    vertex_shader_path: &Path,
-    fragment_shader_path: &Path,
+    shader_program_id: GLuint,
+    vertex_shader_debug_name: &str,
+    fragment_shader_debug_name: &str,
 ) {
-    let error_log = read_error_log(shader_program);
-    let vertex_shader_path_str = vertex_shader_path.to_str().unwrap();
-    let fragment_shader_path_str = fragment_shader_path.to_str().unwrap();
-
+    let error_log = read_error_log(shader_program_id);
     println!(
-        "Failed to link {} and {}, error:\n{}",
-        vertex_shader_path_str, fragment_shader_path_str, error_log
+        "Failed to link vertex shader {} with fragment shader {}, error:\n{}",
+        vertex_shader_debug_name, fragment_shader_debug_name, error_log
     );
 }
 

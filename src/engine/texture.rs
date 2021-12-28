@@ -1,8 +1,8 @@
 use std::convert::TryInto;
 use std::os;
-use std::path::Path;
 
 use gl::types::*;
+use image::ImageFormat;
 
 /// Holds a texture that can be passed to a shader program
 pub struct Texture {
@@ -10,11 +10,23 @@ pub struct Texture {
     current_texture_unit: Option<GLenum>,
 }
 
+pub enum ImageFileFormat {
+    Png,
+
+    #[allow(dead_code)]
+    Guess
+}
+
 impl Texture {
-    pub fn from_path(path: &Path) -> Self {
-        let img = image::open(path)
-            .expect("Failed to load texture")
+    pub fn new(buffer: &[u8], format: ImageFileFormat) -> Self {
+        let image_option = match format {
+            ImageFileFormat::Png => image::load_from_memory_with_format(buffer, ImageFormat::Png),
+            ImageFileFormat::Guess => image::load_from_memory(buffer)
+        };
+        let img = image_option
+            .expect("Failed to load texture from buffer")
             .to_rgba8();
+
         let data = img.as_ptr();
         let width: i32 = img.width().try_into().unwrap();
         let height: i32 = img.height().try_into().unwrap();
