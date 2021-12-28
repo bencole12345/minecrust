@@ -19,6 +19,9 @@ impl Window {
         #[cfg(target_os = "macos")]
         glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
 
+        // Enable 4x MSAA
+        glfw.window_hint(glfw::WindowHint::Samples(Some(4)));
+
         let (mut window, events) = glfw
             .create_window(width, height, title, glfw::WindowMode::Windowed)
             .expect("Failed to create GLFW window");

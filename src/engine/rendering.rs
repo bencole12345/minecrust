@@ -58,6 +58,8 @@ impl Renderer {
             gl::Enable(gl::CULL_FACE);
             gl::FrontFace(gl::CCW);
             gl::CullFace(gl::BACK);
+
+            gl::Enable(gl::MULTISAMPLE);
         }
 
         // Set up textures
