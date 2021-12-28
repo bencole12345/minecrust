@@ -8,13 +8,13 @@ use crate::engine::binding::Bindable;
 /// Encodes information about the offsets of different data within a buffer of
 /// vertex data
 #[derive(Debug)]
-pub struct VertexDataStructureInfo {
+pub struct ModelDataLayoutInfo {
     pub position_offset: u32,
     pub normal_offset: u32,
     pub texture_offset: Option<u32>,
 }
 
-impl VertexDataStructureInfo {
+impl ModelDataLayoutInfo {
     pub fn stride_floats(&self) -> u32 {
         let position_size = 3;
         let normals_size = 3;
@@ -34,20 +34,31 @@ impl VertexDataStructureInfo {
 /// Wraps vertex data about a model
 #[derive(Debug)]
 pub struct ModelData {
+    /// The number of vertices in the model
     vertices_count: u32,
+
+    /// The vertex array object ID
     vao: u32,
+
+    /// The vertex buffer object ID
     vbo: u32,
-    // TODO: Add support for index buffers
+
+    /// The element buffer object ID
+    ebo: u32,
 }
 
 impl ModelData {
-    pub fn new(vertex_data: Vec<f32>, vertex_data_info: &VertexDataStructureInfo) -> ModelData {
-        let float_size = mem::size_of::<GLfloat>();
-        let total_buffer_size_bytes = vertex_data.len() * float_size;
-        let stride_floats = vertex_data_info.stride_floats();
-        let vertices_count = vertex_data.len() as u32 / stride_floats;
+    pub fn new(
+        vertex_data: &[f32],
+        index_buffer: &[u32],
+        layout_info: ModelDataLayoutInfo,
+    ) -> ModelData {
+        let vertex_buffer_size_bytes = vertex_data.len() * mem::size_of::<GLfloat>();
+        let index_buffer_size_bytes = index_buffer.len() * mem::size_of::<GLuint>();
 
-        let (vao, vbo) = unsafe {
+        let vertices_count = (index_buffer.len() / 3) as u32;
+
+        let (vao, vbo, ebo) = unsafe {
             // Create a vertex array object
             let mut vao = 0;
             gl::GenVertexArrays(1, &mut vao);
@@ -58,11 +69,24 @@ impl ModelData {
             gl::GenBuffers(1, &mut vbo);
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
 
-            // Copy data to GPU
+            // Copy data into it
             gl::BufferData(
                 gl::ARRAY_BUFFER,
-                total_buffer_size_bytes as GLsizeiptr,
+                vertex_buffer_size_bytes as GLsizeiptr,
                 vertex_data.as_ptr() as *const f32 as *const os::raw::c_void,
+                gl::STATIC_DRAW,
+            );
+
+            // Create an array buffer object
+            let mut ebo = 0;
+            gl::GenBuffers(1, &mut ebo);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+
+            // Copy data into it
+            gl::BufferData(
+                gl::ELEMENT_ARRAY_BUFFER,
+                index_buffer_size_bytes as GLsizeiptr,
+                index_buffer.as_ptr() as *const f32 as *const os::raw::c_void,
                 gl::STATIC_DRAW,
             );
 
@@ -72,8 +96,9 @@ impl ModelData {
                 3,
                 gl::FLOAT,
                 gl::FALSE,
-                vertex_data_info.stride_bytes() as i32,
-                (vertex_data_info.position_offset * float_size as u32) as *const os::raw::c_void,
+                layout_info.stride_bytes() as i32,
+                (layout_info.position_offset * mem::size_of::<GLfloat>() as u32)
+                    as *const os::raw::c_void,
             );
             gl::EnableVertexAttribArray(0);
 
@@ -83,35 +108,38 @@ impl ModelData {
                 3,
                 gl::FLOAT,
                 gl::FALSE,
-                vertex_data_info.stride_bytes() as i32,
-                (vertex_data_info.normal_offset * float_size as u32) as *const os::raw::c_void,
+                layout_info.stride_bytes() as i32,
+                (layout_info.normal_offset * mem::size_of::<GLfloat>() as u32)
+                    as *const os::raw::c_void,
             );
             gl::EnableVertexAttribArray(1);
 
-            // // Set up texture coordinates attribute
-            if let Some(offset) = vertex_data_info.texture_offset {
+            // Set up texture coordinates attribute
+            if let Some(offset) = layout_info.texture_offset {
                 gl::VertexAttribPointer(
                     2,
                     2,
                     gl::FLOAT,
                     gl::FALSE,
-                    vertex_data_info.stride_bytes() as i32,
-                    (offset * float_size as u32) as *const os::raw::c_void,
+                    layout_info.stride_bytes() as i32,
+                    (offset * mem::size_of::<GLfloat>() as u32) as *const os::raw::c_void,
                 );
                 gl::EnableVertexAttribArray(2);
             }
 
-            // Unbind the buffer and vertex array object now that we're done
+            // Unbind all the buffers now that we're done
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
 
-            (vao, vbo)
+            (vao, vbo, ebo)
         };
 
         ModelData {
             vertices_count,
             vao,
             vbo,
+            ebo,
         }
     }
 
@@ -123,6 +151,7 @@ impl ModelData {
 impl Drop for ModelData {
     fn drop(&mut self) {
         unsafe {
+            gl::DeleteBuffers(1, &self.ebo);
             gl::DeleteBuffers(1, &self.vbo);
             gl::DeleteVertexArrays(1, &self.vao);
         }
@@ -133,6 +162,7 @@ impl Bindable<'_> for ModelData {
     fn bind(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
 
             // TODO: Decide whether this call is needed (deferred until we have multiple VAOs!)
             // gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
@@ -141,6 +171,7 @@ impl Bindable<'_> for ModelData {
 
     fn unbind(&self) {
         unsafe {
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
         }
     }

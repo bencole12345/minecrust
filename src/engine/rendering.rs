@@ -1,4 +1,5 @@
 use std::cmp;
+use std::ptr;
 
 use na::Vector3;
 use packer::Packer;
@@ -9,11 +10,7 @@ use crate::engine::lighting::{GlobalLight, PointLight};
 use crate::engine::resources;
 use crate::engine::scene::{Scene, SceneObject};
 use crate::engine::shaders::{Shader, ShaderProgram, ShaderType};
-<<<<<<< HEAD
-use crate::engine::texture::{Texture, ImageFileFormat};
-=======
 use crate::engine::texture::{ImageFileFormat, Texture};
->>>>>>> load-at-compile-time
 use crate::engine::uniforms::Uniform;
 
 const BACKGROUND_R: f32 = 0.2;
@@ -92,10 +89,15 @@ impl Renderer {
     fn render_object(&self, object: &SceneObject) {
         let _vertex_data_guard = BindGuard::create_bind(&object.model_data);
         write_model_uniforms(&self.cubes_shader_program, object);
-        let first_index = 0;
         let num_vertices = object.model_data.num_vertices() as i32;
+        let num_triangles = num_vertices * 3;
         unsafe {
-            gl::DrawArrays(gl::TRIANGLES, first_index, num_vertices);
+            gl::DrawElements(
+                gl::TRIANGLES,
+                num_triangles,
+                gl::UNSIGNED_INT,
+                ptr::null_mut(),
+            );
         }
     }
 }

@@ -14,14 +14,14 @@ pub enum ImageFileFormat {
     Png,
 
     #[allow(dead_code)]
-    Guess
+    Guess,
 }
 
 impl Texture {
     pub fn new(buffer: &[u8], format: ImageFileFormat) -> Self {
         let image_option = match format {
             ImageFileFormat::Png => image::load_from_memory_with_format(buffer, ImageFormat::Png),
-            ImageFileFormat::Guess => image::load_from_memory(buffer)
+            ImageFileFormat::Guess => image::load_from_memory(buffer),
         };
         let img = image_option
             .expect("Failed to load texture from buffer")
