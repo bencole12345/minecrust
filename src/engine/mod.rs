@@ -11,4 +11,5 @@ pub mod texture;
 pub mod window;
 
 mod binding;
+mod resources;
 mod uniforms;

@@ -4,7 +4,6 @@ use crate::engine::texture::Texture;
 
 /// Encodes the supported uniforms that can be passed to a shader program
 pub enum Uniform<'a> {
-
     /// The model matrix for the object being rendered
     ModelMatrix(&'a Matrix4<f32>),
 
