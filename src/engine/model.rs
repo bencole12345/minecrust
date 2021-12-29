@@ -10,14 +10,17 @@ use crate::engine::binding::Bindable;
 #[derive(Debug)]
 pub struct ModelDataLayoutInfo {
     pub position_offset: u32,
-    pub normal_offset: u32,
+    pub normal_offset: Option<u32>,
     pub texture_offset: Option<u32>,
 }
 
 impl ModelDataLayoutInfo {
     pub fn stride_floats(&self) -> u32 {
         let position_size = 3;
-        let normals_size = 3;
+        let normals_size = match self.normal_offset {
+            Some(_) => 3,
+            None => 0,
+        };
         let texture_coords_size = match self.texture_offset {
             Some(_) => 2,
             None => 0,
@@ -28,6 +31,33 @@ impl ModelDataLayoutInfo {
 
     pub fn stride_bytes(&self) -> u32 {
         self.stride_floats() * mem::size_of::<GLfloat>() as u32
+    }
+
+    /// Reports the index of the positions attribute
+    pub fn positions_index(&self) -> usize {
+        0
+    }
+
+    /// Reports the index of the normals attribute
+    pub fn normals_index(&self) -> usize {
+        if self.normal_offset.is_none() {
+            panic!("normals_index() called when there is no normal attribute")
+        }
+
+        self.positions_index() + 1
+    }
+
+    /// Reports the index of the textures attribute
+    pub fn textures_index(&self) -> usize {
+        if self.texture_offset.is_none() {
+            panic!("textures_index() called when there is no texture attribute")
+        }
+
+        if self.normal_offset.is_some() {
+            self.normals_index() + 1
+        } else {
+            self.normals_index()
+        }
     }
 }
 
@@ -100,19 +130,20 @@ impl ModelData {
                 (layout_info.position_offset * mem::size_of::<GLfloat>() as u32)
                     as *const os::raw::c_void,
             );
-            gl::EnableVertexAttribArray(0);
+            gl::EnableVertexAttribArray(layout_info.positions_index() as u32);
 
-            // // Set up vertex normals attribute
-            gl::VertexAttribPointer(
-                1,
-                3,
-                gl::FLOAT,
-                gl::FALSE,
-                layout_info.stride_bytes() as i32,
-                (layout_info.normal_offset * mem::size_of::<GLfloat>() as u32)
-                    as *const os::raw::c_void,
-            );
-            gl::EnableVertexAttribArray(1);
+            // Set up vertex normals attribute
+            if let Some(offset) = layout_info.normal_offset {
+                gl::VertexAttribPointer(
+                    1,
+                    3,
+                    gl::FLOAT,
+                    gl::FALSE,
+                    layout_info.stride_bytes() as i32,
+                    (offset * mem::size_of::<GLfloat>() as u32) as *const os::raw::c_void,
+                );
+                gl::EnableVertexAttribArray(layout_info.normals_index() as u32);
+            }
 
             // Set up texture coordinates attribute
             if let Some(offset) = layout_info.texture_offset {
@@ -124,7 +155,7 @@ impl ModelData {
                     layout_info.stride_bytes() as i32,
                     (offset * mem::size_of::<GLfloat>() as u32) as *const os::raw::c_void,
                 );
-                gl::EnableVertexAttribArray(2);
+                gl::EnableVertexAttribArray(layout_info.textures_index() as u32);
             }
 
             // Unbind all the buffers now that we're done
@@ -143,8 +174,8 @@ impl ModelData {
         }
     }
 
-    pub fn num_vertices(&self) -> u32 {
-        self.vertices_count
+    pub fn num_elements(&self) -> u32 {
+        self.vertices_count * 3
     }
 }
 

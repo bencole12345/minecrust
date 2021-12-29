@@ -7,6 +7,7 @@ pub mod movement;
 pub mod rendering;
 pub mod scene;
 pub mod shaders;
+pub mod skybox;
 pub mod texture;
 pub mod window;
 

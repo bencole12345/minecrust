@@ -1,6 +1,7 @@
 use std::cmp;
 use std::ptr;
 
+use gl::types::*;
 use na::Vector3;
 use packer::Packer;
 
@@ -22,6 +23,8 @@ const MAX_POINT_LIGHTS: usize = 4;
 pub struct Renderer {
     cubes_shader_program: ShaderProgram,
     cubes_texture: Texture,
+
+    skybox_shader_program: ShaderProgram,
 }
 
 impl Renderer {
@@ -43,25 +46,42 @@ impl Renderer {
             ImageFileFormat::Png,
         );
 
+        let skybox_vertex_shader = Shader::new(
+            resources::Shaders::get("skybox.vert").unwrap(),
+            ShaderType::VertexShader,
+            "skybox.vert",
+        );
+        let skybox_fragment_shader = Shader::new(
+            resources::Shaders::get("skybox.frag").unwrap(),
+            ShaderType::FragmentShader,
+            "skybox.frag",
+        );
+        let skybox_shader_program =
+            ShaderProgram::new(skybox_vertex_shader, skybox_fragment_shader);
+
         Renderer {
             cubes_shader_program,
             cubes_texture,
+            skybox_shader_program,
         }
     }
 
     /// Sets up the OpenGL environment ready to use this renderer
     pub fn setup(&mut self) {
         unsafe {
+            gl::Enable(gl::DEPTH_TEST);
+
+            // Cull faces oriented away from the camera to avoid wasted work
             gl::Enable(gl::CULL_FACE);
             gl::FrontFace(gl::CCW);
             gl::CullFace(gl::BACK);
 
+            // Enable multisampling for anti-aliasing
             gl::Enable(gl::MULTISAMPLE);
         }
 
         // Set up textures
-        // TODO: Allocate these more intelligently
-        // TODO: Use a BindGuard for this
+        // TODO: Allocate these more intelligently + consider integrating with BindGuard
         self.cubes_texture.bind_to_texture_unit(gl::TEXTURE0);
         write_texture_uniforms(&self.cubes_shader_program, &self.cubes_texture);
     }
@@ -69,9 +89,14 @@ impl Renderer {
     pub fn render_scene(&self, scene: &Scene, camera: &Camera) {
         unsafe {
             gl::ClearColor(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
+        self.render_objects(scene, camera);
+        self.render_skybox(scene, camera);
+    }
+
+    fn render_objects(&self, scene: &Scene, camera: &Camera) {
         // Bind shader program
         let _shader_program_guard = BindGuard::create_bind(&self.cubes_shader_program);
 
@@ -82,22 +107,60 @@ impl Renderer {
 
         // Render each object
         for object in &scene.objects {
-            self.render_object(&object);
+            // Bind this object's vertex data
+            let _vertex_data_guard = BindGuard::create_bind(&object.model_data);
+
+            // Write uniforms specific to this object
+            write_model_uniforms(&self.cubes_shader_program, object);
+
+            // Do the render
+            unsafe {
+                gl::DrawElements(
+                    gl::TRIANGLES,
+                    object.model_data.num_elements() as i32,
+                    gl::UNSIGNED_INT,
+                    ptr::null_mut(),
+                );
+            }
         }
     }
 
-    fn render_object(&self, object: &SceneObject) {
-        let _vertex_data_guard = BindGuard::create_bind(&object.model_data);
-        write_model_uniforms(&self.cubes_shader_program, object);
-        let num_vertices = object.model_data.num_vertices() as i32;
-        let num_triangles = num_vertices * 3;
+    fn render_skybox(&self, scene: &Scene, camera: &Camera) {
+        // Bind shader program
+        let _shader_program_guard = BindGuard::create_bind(&self.skybox_shader_program);
+
+        // Write the uniforms we need
+        write_camera_uniforms(&self.skybox_shader_program, camera);
+
+        // Save the old depth function and
+        let mut old_depth_func: GLint = 0;
+        let mut old_cull_face_mode: GLint = 0;
+        unsafe {
+            gl::GetIntegerv(gl::DEPTH_FUNC, &mut old_depth_func);
+            gl::GetIntegerv(gl::CULL_FACE_MODE, &mut old_cull_face_mode);
+        }
+
+        // Set the new modes we need
+        unsafe {
+            gl::DepthFunc(gl::LEQUAL);
+            gl::CullFace(gl::FRONT);
+        }
+
+        // Do the render
+        let _skybox_cube_guard = BindGuard::create_bind(&scene.skybox.model);
         unsafe {
             gl::DrawElements(
                 gl::TRIANGLES,
-                num_triangles,
+                scene.skybox.model.num_elements() as i32,
                 gl::UNSIGNED_INT,
                 ptr::null_mut(),
             );
+        }
+
+        // Restore the old settings
+        unsafe {
+            gl::DepthFunc(old_depth_func as u32);
+            gl::CullFace(old_cull_face_mode as u32);
         }
     }
 }

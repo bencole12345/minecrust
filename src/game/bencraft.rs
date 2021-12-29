@@ -1,6 +1,6 @@
 use na::{Point3, Vector3};
 
-use crate::engine::{driver, lighting, scene, window};
+use crate::engine::{driver, lighting, scene, skybox, window};
 use crate::world;
 
 const INITIAL_WIDTH: u32 = 1280;
@@ -41,10 +41,13 @@ pub fn run_game() {
         intensity: 0.0,
     };
 
+    let skybox = skybox::Skybox::new();
+
     let the_scene = scene::Scene {
         objects,
         point_lights,
         global_light,
+        skybox,
     };
 
     let mut driver = driver::Driver::new();
