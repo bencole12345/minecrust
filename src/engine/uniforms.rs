@@ -36,7 +36,9 @@ pub enum Uniform<'a> {
 }
 
 impl<'a> Uniform<'a> {
+    #[inline]
     pub const fn get_name_in_shader(&self) -> &str {
+        // TODO: Use PHF (https://crates.io/crates/phf) to speed this up
         match self {
             Uniform::ModelMatrix(_) => "Model",
             Uniform::ViewMatrix(_) => "View",

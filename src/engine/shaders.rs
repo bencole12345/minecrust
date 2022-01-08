@@ -90,6 +90,7 @@ impl ShaderProgram {
         ShaderProgram { id }
     }
 
+    #[inline]
     fn lookup_uniform_location(&self, name: &str) -> GLint {
         unsafe {
             let name_as_cstring = ffi::CString::new(name).unwrap();
@@ -97,6 +98,7 @@ impl ShaderProgram {
         }
     }
 
+    #[inline]
     pub fn write_uniform(&self, uniform: Uniform) {
         let name = uniform.get_name_in_shader();
         let position = self.lookup_uniform_location(name);
@@ -134,12 +136,14 @@ impl Drop for ShaderProgram {
 }
 
 impl Bindable<'_> for ShaderProgram {
+    #[inline]
     fn bind(&self) {
         unsafe {
             gl::UseProgram(self.id);
         }
     }
 
+    #[inline]
     fn unbind(&self) {
         // TODO: Consider resetting uniform values here
         unsafe {

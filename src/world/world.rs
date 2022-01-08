@@ -2,7 +2,7 @@ use crate::world::chunk::Chunk;
 
 /// Encodes the state of everything in the game world
 pub struct World {
-    pub chunks: vec<Chunk>
+    pub chunks: Vec<Chunk>
 }
 
 

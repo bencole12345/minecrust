@@ -19,15 +19,10 @@ pub struct Camera {
     theta: f32,
 }
 
-impl Camera {
-    pub fn create_at_origin() -> Self {
-        Camera {
-            position: Point3::origin(),
-            phi: 0.0,
-            theta: 0.0,
-        }
-    }
+// TODO: Wrap the camera's position and orientation into a separate object that implements Moveable
 
+impl Camera {
+    /// Get the view matrix of the camera, in homogeneous coordinates
     pub fn view_matrix(&self) -> Matrix4<f32> {
         let rotation_y_axis = Rotation3::new(Vector3::new(0.0, 1.0, 0.0) * self.phi);
         let rotation_x_axis = Rotation3::new(Vector3::new(1.0, 0.0, 0.0) * -self.theta);
@@ -36,12 +31,23 @@ impl Camera {
         (rotation * translation).to_homogeneous()
     }
 
+    /// Get the projection matrix of the camera, in homogeneous coordinates
     pub fn projection_matrix(&self) -> Matrix4<f32> {
         let aspect = 16.0 / 9.0;
         let fovy = PI * 0.2;
         let znear = 1.0;
         let zfar = 1000.0;
         Matrix4::new_perspective(aspect, fovy, znear, zfar)
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Camera {
+            position: Point3::origin(),
+            phi: 0.0,
+            theta: 0.0,
+        }
     }
 }
 

@@ -1,16 +1,17 @@
 pub mod camera;
-pub mod controls;
-pub mod driver;
+pub mod events;
+pub mod inputs;
 pub mod lighting;
 pub mod model;
 pub mod movement;
 pub mod rendering;
 pub mod scene;
-pub mod shaders;
 pub mod skybox;
-pub mod texture;
+pub mod time;
 pub mod window;
 
 mod binding;
 mod resources;
+mod shaders;
+mod texture;
 mod uniforms;

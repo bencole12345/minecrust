@@ -2,7 +2,7 @@ mod engine;
 mod game;
 mod world;
 
-// TODO: Split into separate packages like the Piston library uses
+// TODO: Split into separate libraries like the Piston library uses
 
 extern crate gl;
 extern crate glfw;
@@ -12,5 +12,6 @@ extern crate nalgebra as na;
 extern crate packer;
 
 fn main() {
-    game::bencraft::run_game();
+    let mut driver = game::driver::Driver::new();
+    driver.run_game();
 }

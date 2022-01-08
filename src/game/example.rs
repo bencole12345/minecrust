@@ -1,15 +1,9 @@
 use na::{Point3, Vector3};
 
-use crate::engine::{driver, lighting, scene, skybox, window};
+use crate::engine::{lighting, scene, skybox};
 use crate::world;
 
-const INITIAL_WIDTH: u32 = 1280;
-const INITIAL_HEIGHT: u32 = 720;
-
-pub fn run_game() {
-    let title = "MineCrust";
-    let mut the_window = window::Window::new(INITIAL_WIDTH, INITIAL_HEIGHT, &title);
-
+pub fn build_example_scene() -> scene::Scene {
     let objects = vec![scene::SceneObject {
         position: Point3::new(0.0, 0.0, -4.0),
         orientation: Vector3::new(0.0, 0.0, 0.0),
@@ -43,15 +37,10 @@ pub fn run_game() {
 
     let skybox = skybox::Skybox::new();
 
-    let the_scene = scene::Scene {
+    scene::Scene {
         objects,
         point_lights,
         global_light,
         skybox,
-    };
-
-    let mut driver = driver::Driver::new();
-    driver.load_scene(the_scene);
-
-    driver.main_loop(&mut the_window);
+    }
 }

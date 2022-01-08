@@ -20,15 +20,19 @@ const BACKGROUND_B: f32 = 0.2;
 
 const MAX_POINT_LIGHTS: usize = 4;
 
-pub struct Renderer {
+/// A target capable of being rendered to
+pub trait RenderingContext {
+    fn swap_buffers(&mut self);
+}
+
+pub(crate) struct Renderer {
     cubes_shader_program: ShaderProgram,
     cubes_texture: Texture,
-
     skybox_shader_program: ShaderProgram,
 }
 
 impl Renderer {
-    pub fn new() -> Renderer {
+    pub(crate) fn new() -> Renderer {
         let cubes_vertex_shader = Shader::new(
             resources::Shaders::get("cubes.vert").unwrap(),
             ShaderType::VertexShader,
@@ -66,7 +70,7 @@ impl Renderer {
         }
     }
 
-    /// Sets up the OpenGL environment ready to use this renderer
+    /// Set up the OpenGL environment ready to use this renderer
     pub fn setup(&mut self) {
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
@@ -86,7 +90,11 @@ impl Renderer {
         write_texture_uniforms(&self.cubes_shader_program, &self.cubes_texture);
     }
 
-    pub fn render_scene(&self, scene: &Scene, camera: &Camera) {
+    /// Render a scene to a `RenderingContext`
+    pub fn render_scene<'a, T>(&self, scene: &Scene, camera: &Camera, target: &'a mut T)
+    where
+        T: RenderingContext,
+    {
         unsafe {
             gl::ClearColor(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -94,8 +102,11 @@ impl Renderer {
 
         self.render_objects(scene, camera);
         self.render_skybox(scene, camera);
+
+        target.swap_buffers();
     }
 
+    #[inline]
     fn render_objects(&self, scene: &Scene, camera: &Camera) {
         // Bind shader program
         let _shader_program_guard = BindGuard::create_bind(&self.cubes_shader_program);
@@ -125,6 +136,7 @@ impl Renderer {
         }
     }
 
+    #[inline]
     fn render_skybox(&self, scene: &Scene, camera: &Camera) {
         // Bind shader program
         let _shader_program_guard = BindGuard::create_bind(&self.skybox_shader_program);
@@ -165,15 +177,18 @@ impl Renderer {
     }
 }
 
+#[inline]
 fn write_camera_uniforms(program: &ShaderProgram, camera: &Camera) {
     program.write_uniform(Uniform::ViewMatrix(&camera.view_matrix()));
     program.write_uniform(Uniform::ProjectionMatrix(&camera.projection_matrix()));
 }
 
+#[inline]
 fn write_model_uniforms(program: &ShaderProgram, model: &SceneObject) {
     program.write_uniform(Uniform::ModelMatrix(&model.model_matrix()));
 }
 
+#[inline]
 fn write_global_illuminant_uniforms(program: &ShaderProgram, global_illuminant: &GlobalLight) {
     program.write_uniform(Uniform::GlobalIlluminantDirection(
         &global_illuminant.direction,
@@ -184,6 +199,7 @@ fn write_global_illuminant_uniforms(program: &ShaderProgram, global_illuminant: 
     ));
 }
 
+#[inline]
 fn write_point_light_uniforms(program: &ShaderProgram, point_lights: &Vec<PointLight>) {
     let mut light_positions: Vec<Vector3<f32>> = vec![];
     let mut light_colours: Vec<Vector3<f32>> = vec![];
@@ -201,6 +217,7 @@ fn write_point_light_uniforms(program: &ShaderProgram, point_lights: &Vec<PointL
     program.write_uniform(Uniform::PointLightsIntensities(&light_intensities));
 }
 
+#[inline]
 fn write_texture_uniforms(program: &ShaderProgram, texture: &Texture) {
     program.write_uniform(Uniform::CubeTexture(texture));
 }

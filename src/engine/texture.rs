@@ -10,9 +10,9 @@ pub struct Texture {
     current_texture_unit: Option<GLenum>,
 }
 
+/// The file format of the image to be loaded
 pub enum ImageFileFormat {
     Png,
-
     #[allow(dead_code)]
     Guess,
 }
@@ -65,6 +65,7 @@ impl Texture {
         }
     }
 
+    /// Bind this texture to a texture unit on the GPU
     pub fn bind_to_texture_unit(&mut self, texture_unit: GLenum) {
         unsafe {
             gl::ActiveTexture(texture_unit);
@@ -73,6 +74,9 @@ impl Texture {
         self.current_texture_unit = Some(texture_unit);
     }
 
+    /// Unbind this texture from its bound texture unit on the GPU
+    ///
+    /// Will panic if the texture is not currently bound to a texture unit.
     pub fn unbind_from_texture_unit(&mut self) {
         match self.current_texture_unit {
             None => {

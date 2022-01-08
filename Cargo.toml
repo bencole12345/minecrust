@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2018"
 authors = ["Ben Cole <bencole12345@gmail.com>"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 gl = "0.14.0"
 glfw = "0.42.0"
