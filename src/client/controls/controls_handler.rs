@@ -1,9 +1,11 @@
-// use crate::engine::events::{Key, KeyPressHandler};
-use crate::engine::camera::Camera;
+use crate::client::controls::movement::Movable;
+use crate::client::state::ClientState;
 use crate::engine::events::{Event, EventSource};
 use crate::engine::inputs::Key;
-use crate::engine::movement::Moveable;
 
+// TODO: Make W and S only move on the XZ plane
+
+/// The movement speed of the player
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct MovementSpeed {
     linear_speed: f32,
@@ -13,30 +15,30 @@ pub(crate) struct MovementSpeed {
 impl Default for MovementSpeed {
     fn default() -> Self {
         MovementSpeed {
-            linear_speed: 1.0,
-            angular_speed: 1.0,
+            linear_speed: 4.0,
+            angular_speed: 1.2,
         }
     }
 }
 
-/// Implements a standard control scheme for moving the camera around the world.
-pub(crate) struct Controls {
+/// The main handler for processing input events
+pub(crate) struct ControlsHandler {
     close_pressed: bool,
-
-    camera_movement_controller: WASDControlledMovementState,
-    camera_movement_speed: MovementSpeed,
+    player_movement_controller: WASDControlledMovementState,
+    player_movement_speed: MovementSpeed,
 }
 
-impl Controls {
+impl ControlsHandler {
     pub(crate) fn new() -> Self {
-        Controls {
+        ControlsHandler {
             close_pressed: false,
-            camera_movement_controller: WASDControlledMovementState::new(),
-            camera_movement_speed: MovementSpeed::default(),
+            player_movement_controller: WASDControlledMovementState::new(),
+            player_movement_speed: MovementSpeed::default(),
         }
     }
 
-    pub(crate) fn consume_events<T>(&mut self, source: &mut T)
+    // TODO: Docstring
+    pub(crate) fn consume_events<T>(&mut self, source: &mut T, state: &mut ClientState, dt: f64)
     where
         T: EventSource,
     {
@@ -46,6 +48,8 @@ impl Controls {
                 Event::KeyRelease(key) => self.on_key_release(key),
             }
         }
+
+        self.move_player(&mut state.player_position, dt);
     }
 
     pub(crate) fn close_has_been_pressed(&self) -> bool {
@@ -56,19 +60,19 @@ impl Controls {
         if key == Key::Escape {
             self.close_pressed = true;
         } else {
-            self.camera_movement_controller.on_key_press(key);
+            self.player_movement_controller.on_key_press(key);
         }
     }
 
     fn on_key_release(&mut self, key: Key) {
-        self.camera_movement_controller.on_key_release(key);
+        self.player_movement_controller.on_key_release(key);
     }
 
-    pub fn update_camera(&self, camera: &mut Camera, dt: f64) {
-        self.camera_movement_controller.movement_state.apply(
-            camera,
+    fn move_player(&self, player: &mut impl Movable, dt: f64) {
+        self.player_movement_controller.movement_state.apply(
+            player,
             dt,
-            self.camera_movement_speed,
+            self.player_movement_speed,
         );
     }
 }
@@ -91,7 +95,7 @@ struct MovementState {
 impl MovementState {
     fn apply<T>(&self, moveable: &mut T, dt: f64, movement_speed: MovementSpeed)
     where
-        T: Moveable,
+        T: Movable,
     {
         let distance = movement_speed.linear_speed * (dt as f32);
         let angle = movement_speed.angular_speed * (dt as f32);
@@ -138,6 +142,7 @@ impl MovementState {
     }
 }
 
+/// A controller to move the player around the world with a standard WASD control scheme
 struct WASDControlledMovementState {
     movement_state: MovementState,
 }

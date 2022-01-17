@@ -1,10 +1,9 @@
 use na::{Matrix4, Point3, Translation3, Vector3};
 
-use crate::engine::lighting::{GlobalLight, PointLight};
-use crate::engine::model::ModelData;
-use crate::engine::skybox::Skybox;
+use crate::engine::model::Model;
 
 /// An object present in a `Scene`
+#[derive(Debug)]
 pub struct SceneObject {
     /// The position of the object in world coordinates
     pub position: Point3<f32>,
@@ -16,22 +15,7 @@ pub struct SceneObject {
     pub scale: f32,
 
     /// The model data for this object
-    pub model_data: ModelData,
-}
-
-// A scene that can be rendered
-pub struct Scene {
-    /// The objects in the scene
-    pub objects: Vec<SceneObject>,
-
-    /// The point lights in the scene
-    pub point_lights: Vec<PointLight>,
-
-    /// The scene's global illuminant
-    pub global_light: GlobalLight,
-
-    /// The scene's skybox
-    pub skybox: Skybox,
+    pub model: Model,
 }
 
 impl SceneObject {
