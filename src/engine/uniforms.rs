@@ -1,9 +1,9 @@
 use na::{Matrix4, Vector3};
 
-use crate::engine::texture::Texture;
+use crate::engine::texture::TextureBinding;
 
-/// Encodes the supported uniforms that can be passed to a shader program
-pub enum Uniform<'a> {
+/// The supported uniforms that can be passed to a shader program
+pub(crate) enum Uniform<'a> {
     /// The model matrix for the object being rendered
     ModelMatrix(&'a Matrix4<f32>),
 
@@ -31,13 +31,13 @@ pub enum Uniform<'a> {
     /// The radiant intensity of the scene's global illuminant
     GlobalIlluminantIntensity(f32),
 
-    /// The texture to be used to render cubes
-    CubeTexture(&'a Texture),
+    /// The texture to be used when rendering a model
+    ModelTexture(&'a TextureBinding),
 }
 
 impl<'a> Uniform<'a> {
     #[inline]
-    pub const fn get_name_in_shader(&self) -> &str {
+    pub(crate) const fn get_name_in_shader(&self) -> &str {
         // TODO: Use PHF (https://crates.io/crates/phf) to speed this up
         match self {
             Uniform::ModelMatrix(_) => "Model",
@@ -49,7 +49,8 @@ impl<'a> Uniform<'a> {
             Uniform::GlobalIlluminantDirection(_) => "globalIlluminant.direction",
             Uniform::GlobalIlluminantColour(_) => "globalIlluminant.colour",
             Uniform::GlobalIlluminantIntensity(_) => "globalIlluminant.intensity",
-            Uniform::CubeTexture(_) => "cubeTexture",
+            // TODO: Investigate why the texture still seems to work if I spell the uniform name wrong
+            Uniform::ModelTexture(_) => "modelTexture",
         }
     }
 }

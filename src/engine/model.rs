@@ -1,20 +1,45 @@
 use std::mem;
 use std::os;
+use std::rc::Rc;
 
 use gl::types::*;
 
 use crate::engine::binding::Bindable;
+use crate::engine::texture::Texture;
 
 /// Encodes information about the offsets of different data within a buffer of
 /// vertex data
 #[derive(Debug)]
-pub struct ModelDataLayoutInfo {
+pub struct VertexDataLayoutInfo {
     pub position_offset: u32,
     pub normal_offset: Option<u32>,
     pub texture_offset: Option<u32>,
 }
 
-impl ModelDataLayoutInfo {
+/// Vertex data describing the geometry of a model
+#[derive(Debug)]
+pub struct VertexData {
+    /// The number of vertices in the model
+    vertices_count: u32,
+
+    /// The vertex array object ID
+    vao: u32,
+
+    /// The vertex buffer object ID
+    vbo: u32,
+
+    /// The element buffer object ID
+    ebo: u32,
+}
+
+/// A renderable model
+#[derive(Debug)]
+pub struct Model {
+    pub vertices: VertexData,
+    pub texture: Rc<Texture>,
+}
+
+impl VertexDataLayoutInfo {
     pub fn stride_floats(&self) -> u32 {
         let position_size = 3;
         let normals_size = match self.normal_offset {
@@ -61,32 +86,16 @@ impl ModelDataLayoutInfo {
     }
 }
 
-/// Wraps vertex data about a model
-#[derive(Debug)]
-pub struct ModelData {
-    /// The number of vertices in the model
-    vertices_count: u32,
-
-    /// The vertex array object ID
-    vao: u32,
-
-    /// The vertex buffer object ID
-    vbo: u32,
-
-    /// The element buffer object ID
-    ebo: u32,
-}
-
-impl ModelData {
+impl VertexData {
     pub fn new(
         vertex_data: &[f32],
         index_buffer: &[u32],
-        layout_info: ModelDataLayoutInfo,
-    ) -> ModelData {
+        layout_info: VertexDataLayoutInfo,
+    ) -> VertexData {
         let vertex_buffer_size_bytes = vertex_data.len() * mem::size_of::<GLfloat>();
         let index_buffer_size_bytes = index_buffer.len() * mem::size_of::<GLuint>();
 
-        let vertices_count = (index_buffer.len() / 3) as u32;
+        let vertices_count = index_buffer.len() as u32;
 
         let (vao, vbo, ebo) = unsafe {
             // Create a vertex array object
@@ -166,7 +175,7 @@ impl ModelData {
             (vao, vbo, ebo)
         };
 
-        ModelData {
+        VertexData {
             vertices_count,
             vao,
             vbo,
@@ -175,11 +184,11 @@ impl ModelData {
     }
 
     pub fn num_elements(&self) -> u32 {
-        self.vertices_count * 3
+        self.vertices_count
     }
 }
 
-impl Drop for ModelData {
+impl Drop for VertexData {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteBuffers(1, &self.ebo);
@@ -189,7 +198,7 @@ impl Drop for ModelData {
     }
 }
 
-impl Bindable<'_> for ModelData {
+impl Bindable<'_> for VertexData {
     fn bind(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);

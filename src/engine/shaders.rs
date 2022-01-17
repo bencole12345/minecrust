@@ -99,7 +99,7 @@ impl ShaderProgram {
     }
 
     #[inline]
-    pub fn write_uniform(&self, uniform: Uniform) {
+    pub(crate) fn write_uniform(&self, uniform: Uniform) {
         let name = uniform.get_name_in_shader();
         let position = self.lookup_uniform_location(name);
         unsafe {
@@ -108,10 +108,14 @@ impl ShaderProgram {
                     gl::UniformMatrix4fv(position, 1, gl::FALSE, m.as_ptr());
                 }
                 Uniform::PointLightsPositions(va) | Uniform::PointLightsColours(va) => {
-                    gl::Uniform3fv(position, va.len().try_into().unwrap(), va[0].as_ptr());
+                    if !va.is_empty() {
+                        gl::Uniform3fv(position, va.len().try_into().unwrap(), va[0].as_ptr());
+                    }
                 }
                 Uniform::PointLightsIntensities(v) => {
-                    gl::Uniform1fv(position, v.len().try_into().unwrap(), v.as_ptr());
+                    if !v.is_empty() {
+                        gl::Uniform1fv(position, v.len().try_into().unwrap(), v.as_ptr())
+                    };
                 }
                 Uniform::GlobalIlluminantDirection(v) | Uniform::GlobalIlluminantColour(v) => {
                     gl::Uniform3f(position, v.x, v.y, v.z);
@@ -119,8 +123,9 @@ impl ShaderProgram {
                 Uniform::GlobalIlluminantIntensity(intensity) => {
                     gl::Uniform1f(position, intensity);
                 }
-                Uniform::CubeTexture(texture) => {
-                    gl::Uniform1i(position, texture.texture_id as GLint);
+                // TODO: Work out what's going on here - it seems broken
+                Uniform::ModelTexture(_texture_binding) => {
+                    gl::Uniform1i(position, 0);
                 }
             }
         }
