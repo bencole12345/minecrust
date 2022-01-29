@@ -28,11 +28,13 @@ impl ClientState {
         }
     }
 
+    /// Update the state in response to a change in the player's current chunk index
     pub(crate) fn notify_player_changed_chunk(&mut self, new_chunk_index: ChunkIndex) {
         self.chunks_state
             .notify_player_changed_chunk(new_chunk_index);
     }
 
+    /// The chunks currently inside the render distance
     pub(crate) fn renderable_chunks(&self) -> &Vec<SceneObject> {
         self.chunks_state.renderable_chunks()
     }

@@ -15,6 +15,7 @@ pub(crate) struct ChunksState {
     loaded_chunks: Vec<LoadedChunk>,
     renderable_chunks: Vec<SceneObject>,
     mesh_generator: MeshGenerator,
+    current_chunk_index: ChunkIndex,
 }
 
 impl ChunksState {
@@ -33,6 +34,7 @@ impl ChunksState {
             loaded_chunks,
             renderable_chunks,
             mesh_generator,
+            current_chunk_index,
         }
     }
 
@@ -40,12 +42,30 @@ impl ChunksState {
         &self.renderable_chunks
     }
 
-    pub(crate) fn notify_player_changed_chunk(&mut self, _new_chunk_index: ChunkIndex) {
-        // TODO: Synchronously swap the loadable chunks
-        // TODO: Asynchronously fetch more chunks
-        todo!()
+    pub(crate) fn notify_player_changed_chunk(&mut self, new_chunk_index: ChunkIndex) {
+        let indices_to_load =
+            compute_chunk_indices_to_load(self.current_chunk_index, new_chunk_index);
+
+        for chunk_index in indices_to_load {
+            let position = get_chunk_position(chunk_index);
+            let chunk = self.chunk_source.get_chunk_at(chunk_index);
+            // TODO: Do this asynchronously
+            let mesh = self
+                .mesh_generator
+                .chunk_to_scene_object(&chunk, chunk_index);
+
+            let index_replaced = &self.loaded_chunks[position];
+            println!("Replacing chunk at index ({}, {}) with chunk at index ({}, {})", index_replaced.index.i, index_replaced.index.j, chunk_index.i, chunk_index.j);
+
+            self.loaded_chunks[position] = LoadedChunk {
+                index: chunk_index,
+                chunk,
+            };
+            self.renderable_chunks[position] = mesh;
+        }
     }
 
+    #[allow(dead_code)]
     #[inline]
     pub(crate) fn chunk_at_index(&self, chunk_index: ChunkIndex) -> &Chunk {
         let index = get_chunk_position(chunk_index);
@@ -73,15 +93,35 @@ fn load_initial_chunks(
     chunks
 }
 
+/// Compute the set of chunk indices that must be loaded (and the ones in their places dropped) if
+/// the player moved from `old_chunk_index` to `new_chunk_index`
+fn compute_chunk_indices_to_load(
+    old_chunk_index: ChunkIndex,
+    new_chunk_index: ChunkIndex,
+) -> Vec<ChunkIndex> {
+    let range_before = renderable_chunk_indices_range(old_chunk_index);
+    let range_after = renderable_chunk_indices_range(new_chunk_index);
+    let (min_chunk, max_chunk) = range_after;
+
+    let mut indices = vec![];
+    for i in min_chunk.i..max_chunk.i+1 {
+        for j in min_chunk.j..max_chunk.j+1 {
+            let index = ChunkIndex { i, j };
+            if !index_is_in_range(index, range_before) {
+                indices.push(index);
+            }
+        }
+    }
+    indices
+}
+
 /// Compute the range of chunks that should be renderable for a given player index
 ///
-/// This is a square of dimensions (2*RENDER_DISTANCE_CHUNKS) * (2*RENDER_DISTANCE_CHUNKS), centred
-/// around the chunk containing the player. In the event that RENDER_DISTANCE_CHUNKS is even, there
-/// are essentially four middle chunks, in which case the player's chunk will be the one with the
-/// largest `i` and `j` values.
+/// This is a square of dimensions (1 + 2*RENDER_DISTANCE_CHUNKS) * (1 + 2*RENDER_DISTANCE_CHUNKS)
+/// centred around the player.
 fn renderable_chunk_indices_range(current_chunk_index: ChunkIndex) -> (ChunkIndex, ChunkIndex) {
-    let min_i = current_chunk_index.i - constants::RENDER_DISTANCE_CHUNKS as i32;
-    let min_j = current_chunk_index.j - constants::RENDER_DISTANCE_CHUNKS as i32;
+    let min_i = current_chunk_index.i - constants::RENDER_DISTANCE_CHUNKS as i32 + 1;
+    let min_j = current_chunk_index.j - constants::RENDER_DISTANCE_CHUNKS as i32 + 1;
     let max_i = current_chunk_index.i + constants::RENDER_DISTANCE_CHUNKS as i32 - 1;
     let max_j = current_chunk_index.j + constants::RENDER_DISTANCE_CHUNKS as i32 - 1;
     let min = ChunkIndex { i: min_i, j: min_j };
@@ -89,10 +129,35 @@ fn renderable_chunk_indices_range(current_chunk_index: ChunkIndex) -> (ChunkInde
     (min, max)
 }
 
+/// Compute the value of `a` modulo `n`
+///
+/// This function is necessary because Rust's built-in modulo operator doesn't behave in a
+/// mathematically correct fashion for negative values of `a`.
+#[inline]
+fn modulo(a: i32, n: i32) -> i32 {
+    if a == 0 {
+        0
+    }
+    else if a > 0 {
+        a % n
+    } else {
+        n - ((-a) % n)
+    }
+}
+
 /// Given a 2D chunk index, computes its position in a 1D array of chunks
 #[inline]
 fn get_chunk_position(chunk_index: ChunkIndex) -> usize {
-    let square_edge_length = constants::RENDER_DISTANCE_CHUNKS * 2;
-    ((chunk_index.i % square_edge_length as i32) * square_edge_length as i32
-        + (chunk_index.j % square_edge_length as i32)) as usize
+    let square_edge_length = 2 * constants::RENDER_DISTANCE_CHUNKS - 1;
+    (modulo(chunk_index.i, square_edge_length as i32) * square_edge_length as i32
+        + modulo(chunk_index.j, square_edge_length as i32)) as usize
+}
+
+/// Determine whether a chunk index lies within a range
+#[inline]
+fn index_is_in_range(index: ChunkIndex, range: (ChunkIndex, ChunkIndex)) -> bool {
+    let (lower, upper) = range;
+    let i_in_range = index.i >= lower.i && index.i <= upper.i;
+    let j_in_range = index.j >= lower.j && index.j <= upper.j;
+    i_in_range && j_in_range
 }

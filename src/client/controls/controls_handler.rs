@@ -37,7 +37,7 @@ impl ControlsHandler {
         }
     }
 
-    // TODO: Docstring
+    /// Consume all events from an `EventSource`, updating the client state accordingly
     pub(crate) fn consume_events<T>(&mut self, source: &mut T, state: &mut ClientState, dt: f64)
     where
         T: EventSource,
@@ -93,6 +93,8 @@ struct MovementState {
 }
 
 impl MovementState {
+
+    /// Apply the current movement state to a `Movable` object
     fn apply<T>(&self, moveable: &mut T, dt: f64, movement_speed: MovementSpeed)
     where
         T: Movable,

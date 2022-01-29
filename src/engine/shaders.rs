@@ -123,7 +123,7 @@ impl ShaderProgram {
                 Uniform::GlobalIlluminantIntensity(intensity) => {
                     gl::Uniform1f(position, intensity);
                 }
-                // TODO: Work out what's going on here
+                // TODO: Work out what's going on here - it seems broken
                 Uniform::ModelTexture(_texture_binding) => {
                     gl::Uniform1i(position, 0);
                 }

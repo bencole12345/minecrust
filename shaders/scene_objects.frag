@@ -101,7 +101,7 @@ void main()
     vec3 irradiance = vec3(0.0);
 
     // Global illumination
-    float ratio = 0.5;
+    float ratio = 0.8;
     irradiance += ratio * irradianceFromGlobalIlluminant() + (1.0 - ratio) * vec3(1.0);
 
     // Local illumination from each point light source

@@ -6,9 +6,9 @@ use crate::engine::lighting;
 pub(crate) fn make_scene_lighting() -> lighting::SceneLighting {
     let point_lights = vec![];
     let global_light = lighting::GlobalLight {
-        direction: Vector3::new(0.577, 0.577, 0.577),
+        direction: Vector3::new(1.0, 1.2, 1.5).normalize(),
         colour: Vector3::new(1.0, 1.0, 1.0),
-        intensity: 1.0,
+        intensity: 0.5,
     };
 
     lighting::SceneLighting {

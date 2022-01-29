@@ -10,7 +10,7 @@ use crate::world::block::{Block, NON_EMPTY_BLOCKS_COUNT};
 use crate::world::chunk::{Chunk, ChunkIndex, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
 use crate::world::cube::CubeFace;
 
-const EPS: f32 = 0.000001;
+const EPSILON: f32 = 0.01;
 
 /// Generates renderable meshes from chunks.
 ///
@@ -181,7 +181,7 @@ fn emit_pos_x_face(
         &points,
         normal,
         block,
-        CubeFace::Right,
+        CubeFace::PosX,
         vertex_buffer,
         index_buffer,
     );
@@ -208,7 +208,7 @@ fn emit_neg_x_face(
         &points,
         normal,
         block,
-        CubeFace::Left,
+        CubeFace::NegX,
         vertex_buffer,
         index_buffer,
     );
@@ -235,7 +235,7 @@ fn emit_pos_y_face(
         &points,
         normal,
         block,
-        CubeFace::Top,
+        CubeFace::PosY,
         vertex_buffer,
         index_buffer,
     );
@@ -262,7 +262,7 @@ fn emit_neg_y_face(
         &points,
         normal,
         block,
-        CubeFace::Bottom,
+        CubeFace::NegY,
         vertex_buffer,
         index_buffer,
     );
@@ -289,7 +289,7 @@ fn emit_pos_z_face(
         &points,
         normal,
         block,
-        CubeFace::Front,
+        CubeFace::NegZ,
         vertex_buffer,
         index_buffer,
     );
@@ -316,7 +316,7 @@ fn emit_neg_z_face(
         &points,
         normal,
         block,
-        CubeFace::Back,
+        CubeFace::PosZ,
         vertex_buffer,
         index_buffer,
     );
@@ -387,35 +387,39 @@ pub(crate) fn get_texture_coordinates(
     cube_face: CubeFace,
 ) -> (TextureCoordinate, TextureCoordinate) {
     let u_index = match cube_face {
-        CubeFace::Top => 0,
-        CubeFace::Bottom => 1,
-        CubeFace::Front => 2,
-        CubeFace::Back => 3,
-        CubeFace::Left => 4,
-        CubeFace::Right => 5,
+        CubeFace::PosX => 5,
+        CubeFace::NegX => 4,
+        CubeFace::PosY => 0,
+        CubeFace::NegY => 1,
+        CubeFace::PosZ => 3,
+        CubeFace::NegZ => 2,
     };
 
-    // TODO: Update this once we've added more textures
     let v_index = match block {
         Block::Grass => 0,
-        Block::Dirt => 0,
-        Block::Stone => 0,
+        Block::Dirt => 1,
+        Block::Stone => 2,
 
-        _ => 0,
+        _ => panic!("Don't have a texture mapping for block type: {:?}", block),
     };
+
+    // We have to add an epsilon to avoid a rendering bug in which texture coordinates accidentally
+    // round to an adjacent texture, causing a random colour border around blocks' edges.
+
+    // TODO: Come up with a better fix
 
     let u_start = (u_index as f32) / 6.0;
     let v_start = (v_index as f32) / (NON_EMPTY_BLOCKS_COUNT as f32);
     let start_coords = TextureCoordinate {
-        u: u_start + EPS,
-        v: v_start + EPS,
+        u: u_start + EPSILON,
+        v: v_start + EPSILON,
     };
 
     let u_end = u_start + 1.0 / 6.0;
     let v_end = v_start + (1.0 / (NON_EMPTY_BLOCKS_COUNT as f32));
     let end_coords = TextureCoordinate {
-        u: u_end - EPS,
-        v: v_end - EPS,
+        u: u_end - EPSILON,
+        v: v_end - EPSILON,
     };
 
     (start_coords, end_coords)

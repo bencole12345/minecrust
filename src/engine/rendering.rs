@@ -99,9 +99,6 @@ impl Renderer {
         }
     }
 
-    // TODO: Set up a clever thing with a lambda
-    // pub fn do_render_pass(&self, camera: &CameraPosition, )
-
     /// Commence a render pass
     pub fn begin_render_pass(&self, _target: &impl RenderingContext) {
         unsafe {

@@ -44,6 +44,7 @@ impl Chunk {
         Chunk { blocks }
     }
 
+    #[allow(dead_code)]
     #[inline]
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
         self.blocks[x][y][z] = block;

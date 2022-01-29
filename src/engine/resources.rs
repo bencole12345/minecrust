@@ -2,7 +2,7 @@ use packer::Packer;
 
 #[derive(Packer)]
 #[packer(source = "shaders", prefixed = false)]
-pub struct Shaders;
+struct Shaders;
 
 #[inline]
 fn get_resource(name: &'static str) -> &'static [u8] {
