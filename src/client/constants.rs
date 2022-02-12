@@ -1,10 +1,11 @@
 /// The "radius" of the square of renderable chunks
-///
-/// The set of chunks that is rendered is a square of dimensions
-/// (1 + 2*RENDER_DISTANCE_CHUNKS) * (1 + 2*RENDER_DISTANCE_CHUNKS), centred around the player's
-/// current chunk.
-pub const RENDER_DISTANCE_CHUNKS: usize = 2;
+pub const RENDER_DISTANCE_CHUNKS: u32 = 3;
+
+/// The length of the side of the square of renderable chunks, in chunk lengths
+pub const RENDERABLE_CHUNKS_SQUARE_EDGE_SIZE: u32 = 1 + 2 * RENDER_DISTANCE_CHUNKS;
 
 /// The number of chunks that will be renderable at any point in time
-pub const NUM_RENDERABLE_CHUNKS: usize =
-    (2 * RENDER_DISTANCE_CHUNKS - 1) * (2 * RENDER_DISTANCE_CHUNKS - 1);
+///
+/// This is area of the square of renderable chunks, measured as a number of chunks
+pub const NUM_RENDERABLE_CHUNKS: u32 =
+    RENDERABLE_CHUNKS_SQUARE_EDGE_SIZE * RENDERABLE_CHUNKS_SQUARE_EDGE_SIZE;

@@ -12,7 +12,12 @@ pub struct Chunk {
     // TODO: Compute lighting levels (don't serialise)
 }
 
-#[derive(Clone, Copy, PartialEq)]
+/// The unique index of a chunk
+///
+/// The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate
+/// corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
+/// first spawns in.
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ChunkIndex {
     pub i: i32,
     pub j: i32,
@@ -22,13 +27,21 @@ pub struct ChunkIndex {
 ///
 /// Possible implementations may include loading chunks from a file or over a network.
 pub trait ChunkSource {
-    fn get_chunk_at(&self, index: ChunkIndex) -> Chunk;
+    fn get_chunk_at(&self, index: &ChunkIndex) -> Chunk;
 }
 
 impl ChunkIndex {
     pub fn from_player_position(player_position: na::Point3<f32>) -> Self {
-        let i = (player_position.x / (CHUNK_WIDTH as f32)) as i32;
-        let j = (player_position.z / (CHUNK_DEPTH as f32)) as i32;
+        let i = if player_position.x >= 0.0 {
+            (player_position.x / (CHUNK_WIDTH as f32)) as i32
+        } else {
+            (player_position.x / (CHUNK_WIDTH as f32)) as i32 - 1
+        };
+        let j = if player_position.z >= 0.0 {
+            (player_position.z / (CHUNK_DEPTH as f32)) as i32
+        } else {
+            (player_position.z / (CHUNK_DEPTH as f32)) as i32 - 1
+        };
         ChunkIndex { i, j }
     }
 }
@@ -65,5 +78,29 @@ impl Chunk {
         } else {
             false
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use na::Point3;
+    use rstest::*;
+
+    #[rstest]
+    #[case(Point3::new(1.0, 0.0, 1.0), ChunkIndex{i: 0, j: 0})]
+    #[case(Point3::new(1.0, 64.0, 1.0), ChunkIndex{i: 0, j: 0})]
+    #[case(Point3::new(8.0, 0.0, 1.0), ChunkIndex{i: 0, j: 0})]
+    #[case(Point3::new(16.1, 0.0, 0.0), ChunkIndex{i: 1, j: 0})]
+    #[case(Point3::new(0.0, 0.0, -16.1), ChunkIndex{i: 0, j: -2})]
+    #[case(Point3::new(0.0, 0.0, 16.1), ChunkIndex{i: 0, j: 1})]
+    #[case(Point3::new(8.0, 66.0, -8.0), ChunkIndex{i: 0, j: -1})]
+    #[case(Point3::new(17.0, 66.0, -8.0), ChunkIndex{i: 1, j: -1})]
+    fn chunkindex_from_player_position_works(
+        #[case] player_pos: na::Point3<f32>,
+        #[case] expected_index: ChunkIndex,
+    ) {
+        let result = ChunkIndex::from_player_position(player_pos);
+        assert_eq!(expected_index, result);
     }
 }

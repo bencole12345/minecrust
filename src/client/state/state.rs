@@ -35,7 +35,7 @@ impl ClientState {
     }
 
     /// The chunks currently inside the render distance
-    pub(crate) fn renderable_chunks(&self) -> &Vec<SceneObject> {
+    pub(crate) fn renderable_chunks(&self) -> Vec<&SceneObject> {
         self.chunks_state.renderable_chunks()
     }
 }

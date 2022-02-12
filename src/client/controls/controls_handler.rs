@@ -93,7 +93,6 @@ struct MovementState {
 }
 
 impl MovementState {
-
     /// Apply the current movement state to a `Movable` object
     fn apply<T>(&self, moveable: &mut T, dt: f64, movement_speed: MovementSpeed)
     where

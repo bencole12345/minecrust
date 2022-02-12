@@ -45,7 +45,7 @@ impl MeshGenerator {
     pub(crate) fn chunk_to_scene_object(
         &self,
         chunk: &Chunk,
-        chunk_index: ChunkIndex,
+        chunk_index: &ChunkIndex,
     ) -> SceneObject {
         let mut vertex_buffer: Vec<f32> = vec![];
         let mut index_buffer: Vec<u32> = vec![];

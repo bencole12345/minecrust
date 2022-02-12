@@ -17,7 +17,8 @@ pub struct GlobalLight {
     pub colour: Vector3<f32>,
     pub intensity: f32,
 }
-// Lighting information about a scene that can be rendered
+
+/// Lighting information about a scene that can be rendered
 #[derive(Debug)]
 pub struct SceneLighting {
     pub point_lights: Vec<PointLight>,

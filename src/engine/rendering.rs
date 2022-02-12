@@ -121,7 +121,7 @@ impl Renderer {
     /// Render a series of objects to the active render target
     pub fn render_objects(
         &self,
-        objects: &Vec<SceneObject>,
+        objects: &Vec<&SceneObject>,
         scene: &SceneLighting,
         camera: &CameraPosition,
     ) {

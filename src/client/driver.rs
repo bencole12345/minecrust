@@ -39,8 +39,9 @@ impl Driver {
 
         self.renderer.setup();
 
-        let mut prev_player_chunk_index =
+        let mut prev_player_chunk =
             chunk::ChunkIndex::from_player_position(self.state.player_position.position);
+        self.state.chunks_state.initialise_loaded_chunks();
 
         'main_loop: loop {
             // Compute updated camera position
@@ -53,7 +54,7 @@ impl Driver {
             // Render scene to window
             self.renderer.begin_render_pass(&self.window);
             self.renderer.render_objects(
-                self.state.renderable_chunks(),
+                &self.state.renderable_chunks(),
                 &self.scene_lighting,
                 &camera_pos,
             );
@@ -69,13 +70,12 @@ impl Driver {
             // Handle all events that happened since the last frame
             controls.consume_events(&mut self.window, &mut self.state, time_tracker.dt());
 
-            let new_player_chunk_index =
+            let current_player_chunk =
                 chunk::ChunkIndex::from_player_position(self.state.player_position.position);
-            if new_player_chunk_index != prev_player_chunk_index {
-                self.state
-                    .notify_player_changed_chunk(new_player_chunk_index);
-                prev_player_chunk_index = new_player_chunk_index;
+            if current_player_chunk != prev_player_chunk {
+                self.state.notify_player_changed_chunk(current_player_chunk);
             }
+            prev_player_chunk = current_player_chunk;
 
             if !self.window.alive() || controls.close_has_been_pressed() {
                 break 'main_loop;

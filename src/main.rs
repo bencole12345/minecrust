@@ -11,6 +11,9 @@ extern crate image;
 extern crate nalgebra as na;
 extern crate packer;
 
+#[cfg(test)]
+extern crate rstest;
+
 fn main() {
     let chunks_source = Box::new(world::generation::FlatTerrainGenerator::default());
     let mut driver = client::Driver::new(chunks_source);
