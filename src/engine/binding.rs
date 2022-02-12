@@ -7,6 +7,11 @@ pub trait Bindable<'a> {
     fn unbind(&self);
 }
 
+/// An RAII guard that automatically binds and unbinds a `Bindable` object
+///
+/// A bind is constructed using the `Bindable::create_bind()` method, which invokes the bindable
+/// object's `bind()` method. The resulting `BindGuard` will then automatically `unbind()` the
+/// object upon being dropped.
 pub struct BindGuard<'a, T: Bindable<'a>> {
     bound_target: &'a T,
 }

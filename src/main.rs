@@ -1,8 +1,8 @@
+mod client;
 mod engine;
-mod game;
 mod world;
 
-// TODO: Split into separate packages like the Piston library uses
+// TODO: Split into separate libraries like the Piston library uses
 
 extern crate gl;
 extern crate glfw;
@@ -11,6 +11,11 @@ extern crate image;
 extern crate nalgebra as na;
 extern crate packer;
 
+#[cfg(test)]
+extern crate rstest;
+
 fn main() {
-    game::bencraft::run_game();
+    let chunks_source = Box::new(world::generation::FlatTerrainGenerator::default());
+    let mut driver = client::Driver::new(chunks_source);
+    driver.run_game();
 }

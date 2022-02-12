@@ -5,16 +5,35 @@ use gl::types::*;
 use image::ImageFormat;
 
 /// Holds a texture that can be passed to a shader program
+#[derive(Debug)]
 pub struct Texture {
-    pub texture_id: GLuint,
-    current_texture_unit: Option<GLenum>,
+    pub(crate) texture_id: GLuint,
 }
 
+/// A coordinate into a texture file
+///
+/// For any valid coordinate, `u` and `v` must both fall in the range [0, 1].
+#[derive(Debug)]
+pub struct TextureCoordinate {
+    pub u: f32,
+    pub v: f32,
+}
+
+/// The file format of the image to be loaded
+#[derive(Debug)]
 pub enum ImageFileFormat {
     Png,
-
     #[allow(dead_code)]
     Guess,
+}
+
+/// Represents the binding of a `Texture` to a particular texture unit on the GPU
+///
+/// The texture is bound to the texture unit at the time of creation, and will be automatically
+/// unbound when this object is dropped.
+#[derive(Debug)]
+pub(crate) struct TextureBinding {
+    pub(crate) texture_unit: GLenum,
 }
 
 impl Texture {
@@ -59,41 +78,42 @@ impl Texture {
             id
         };
 
-        Texture {
-            texture_id,
-            current_texture_unit: None,
-        }
+        Texture { texture_id }
     }
 
-    pub fn bind_to_texture_unit(&mut self, texture_unit: GLenum) {
-        unsafe {
-            gl::ActiveTexture(texture_unit);
-            gl::BindTexture(gl::TEXTURE_2D, self.texture_id);
-        }
-        self.current_texture_unit = Some(texture_unit);
-    }
-
-    pub fn unbind_from_texture_unit(&mut self) {
-        match self.current_texture_unit {
-            None => {
-                panic!("Can't unbind texture when it's not bound to a texture unit");
-            }
-            Some(texture_unit) => unsafe {
-                gl::ActiveTexture(texture_unit);
-                gl::BindTexture(gl::TEXTURE_2D, 0);
-            },
-        }
-        self.current_texture_unit = None;
+    /// Binds the texture to a specified texture unit. The returned `TextureBinding` will
+    /// automatically unbind the texture when it gets dropped.
+    ///
+    /// Note that ignoring the returned `TextureBinding` will cause the texture to be unbound
+    /// immediately after the function returns.
+    pub(crate) fn create_binding(&self, texture_unit: GLenum) -> TextureBinding {
+        TextureBinding::new(&self, texture_unit)
     }
 }
 
 impl Drop for Texture {
     fn drop(&mut self) {
-        if self.current_texture_unit.is_some() {
-            self.unbind_from_texture_unit();
-        }
         unsafe {
             gl::DeleteTextures(1, &self.texture_id);
+        }
+    }
+}
+
+impl TextureBinding {
+    pub(crate) fn new(texture: &Texture, texture_unit: GLenum) -> Self {
+        unsafe {
+            gl::ActiveTexture(texture_unit);
+            gl::BindTexture(gl::TEXTURE_2D, texture.texture_id);
+        }
+        TextureBinding { texture_unit }
+    }
+}
+
+impl Drop for TextureBinding {
+    fn drop(&mut self) {
+        unsafe {
+            gl::ActiveTexture(self.texture_unit);
+            gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }
 }

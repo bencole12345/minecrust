@@ -1,45 +1,45 @@
-use crate::engine::model::{ModelData, ModelDataLayoutInfo};
+use crate::engine::model::{VertexData, VertexDataLayoutInfo};
 
 #[rustfmt::skip]
 const SKYBOX_CUBE_VERTICES: [f32; 72] = [
-    // Position         Normal                Tex
-    // x,    y,    z,   nx,   ny,   nz,       u,   v
+    // Position
+    // x,    y,    z
 
     // FRONT
-    -0.5, -0.5, 0.5,
-    0.5, -0.5, 0.5,
-    0.5, 0.5, 0.5,
-    -0.5, 0.5, 0.5,
+    -0.5, -0.5,  0.5,
+     0.5, -0.5,  0.5,
+     0.5,  0.5,  0.5,
+    -0.5,  0.5,  0.5,
 
     // BACK
-    0.5, 0.5, -0.5,
-    0.5, -0.5, -0.5,
+     0.5,  0.5, -0.5,
+     0.5, -0.5, -0.5,
     -0.5, -0.5, -0.5,
-    -0.5, 0.5, -0.5,
+    -0.5,  0.5, -0.5,
 
     // LEFT
-    -0.5, 0.5, -0.5,
+    -0.5,  0.5, -0.5,
     -0.5, -0.5, -0.5,
-    -0.5, -0.5, 0.5,
-    -0.5, 0.5, 0.5,
+    -0.5, -0.5,  0.5,
+    -0.5,  0.5,  0.5,
 
     // RIGHT
-    0.5, 0.5, 0.5,
-    0.5, -0.5, 0.5,
-    0.5, -0.5, -0.5,
-    0.5, 0.5, -0.5,
+     0.5,  0.5,  0.5,
+     0.5, -0.5,  0.5,
+     0.5, -0.5, -0.5,
+     0.5,  0.5, -0.5,
 
     // TOP
-    -0.5, 0.5, -0.5,
-    -0.5, 0.5, 0.5,
-    0.5, 0.5, 0.5,
-    0.5, 0.5, -0.5,
+    -0.5,  0.5, -0.5,
+    -0.5,  0.5,  0.5,
+     0.5,  0.5,  0.5,
+     0.5,  0.5, -0.5,
 
     // BOTTOM
-    -0.5, -0.5, 0.5,
+    -0.5, -0.5,  0.5,
     -0.5, -0.5, -0.5,
-    0.5, -0.5, -0.5,
-    0.5, -0.5, 0.5,
+     0.5, -0.5, -0.5,
+     0.5, -0.5,  0.5,
 ];
 
 #[rustfmt::skip]
@@ -69,18 +69,20 @@ const SKYBOX_CUBE_INDICES: [u32; 36] = [
     22, 23, 20,
 ];
 
+/// A skybox that can be rendered in a scene
+#[derive(Debug)]
 pub struct Skybox {
-    pub model: ModelData,
+    pub model: VertexData,
 }
 
 impl Skybox {
     pub fn new() -> Self {
-        let layout_info = ModelDataLayoutInfo {
+        let layout_info = VertexDataLayoutInfo {
             position_offset: 0,
             normal_offset: None,
             texture_offset: None,
         };
-        let model = ModelData::new(&SKYBOX_CUBE_VERTICES, &SKYBOX_CUBE_INDICES, layout_info);
+        let model = VertexData::new(&SKYBOX_CUBE_VERTICES, &SKYBOX_CUBE_INDICES, layout_info);
 
         Skybox { model }
     }

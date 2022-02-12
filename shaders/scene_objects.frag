@@ -9,6 +9,12 @@
  */
 
 
+/**
+ * TODO: Render distance fog (just compute the distance from the camera and derive from that)
+ * (Possibly use a triangle function starting from (RENDER_DISTANCE_CHUNKS-1) * chunk width)
+ */
+
+
 #define NUM_POINT_LIGHT_SOURCES 4
 
 
@@ -37,7 +43,7 @@ in vec2 TexCoord;
 
 uniform GlobalIlluminant globalIlluminant;
 uniform PointLights pointLights;
-uniform sampler2D cubesTexture;
+uniform sampler2D modelTexture;
 
 out vec4 FragColor;
 
@@ -47,7 +53,7 @@ out vec4 FragColor;
  */
 vec4 baseColour()
 {
-    return texture(cubesTexture, TexCoord);
+    return texture(modelTexture, TexCoord);
 }
 
 
@@ -95,7 +101,8 @@ void main()
     vec3 irradiance = vec3(0.0);
 
     // Global illumination
-    irradiance += irradianceFromGlobalIlluminant();
+    float ratio = 0.8;
+    irradiance += ratio * irradianceFromGlobalIlluminant() + (1.0 - ratio) * vec3(1.0);
 
     // Local illumination from each point light source
     for (int i = 0; i < NUM_POINT_LIGHT_SOURCES; i++) {
@@ -110,3 +117,5 @@ void main()
     vec3 gammaEncoded = gammaEncode(toneMapped);
     FragColor = vec4(gammaEncoded, base.a);
 }
+
+

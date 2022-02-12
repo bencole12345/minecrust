@@ -1,16 +1,23 @@
-pub mod camera;
-pub mod controls;
-pub mod driver;
+mod binding;
+mod camera;
+mod rendering;
+mod resources;
+mod scene;
+mod shaders;
+mod skybox;
+mod time;
+mod uniforms;
+mod window;
+
+pub mod events;
+pub mod inputs;
 pub mod lighting;
 pub mod model;
-pub mod movement;
-pub mod rendering;
-pub mod scene;
-pub mod shaders;
-pub mod skybox;
 pub mod texture;
-pub mod window;
 
-mod binding;
-mod resources;
-mod uniforms;
+pub use camera::CameraPosition;
+pub use rendering::Renderer;
+pub use scene::SceneObject;
+pub use skybox::Skybox;
+pub use time::TimeTracker;
+pub use window::Window;

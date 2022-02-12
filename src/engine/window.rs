@@ -1,6 +1,8 @@
-use glfw::{Context, FlushedMessages, WindowEvent};
+use glfw::{Action, Context};
 
-use crate::engine::driver::DriverHost;
+use crate::engine::events::{Event, EventSource};
+use crate::engine::inputs::Key;
+use crate::engine::rendering::RenderingContext;
 
 /// A window that will contain the game
 pub struct Window {
@@ -31,7 +33,7 @@ impl Window {
         window.set_framebuffer_size_polling(true);
 
         // Load OpenGL functions
-        // TODO: Move this into some kind of thread-safe singleton class
+        // TODO: Move this into some kind of thread-safe, lazy-loaded singleton class
         gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
 
         Window {
@@ -40,19 +42,44 @@ impl Window {
             glfw_events: events,
         }
     }
-}
 
-impl DriverHost for Window {
-    fn should_continue(&self) -> bool {
+    pub fn alive(&self) -> bool {
         !self.glfw_window.should_close()
     }
+}
 
-    fn poll_events(&mut self) -> FlushedMessages<'_, (f64, WindowEvent)> {
-        self.glfw_instance.poll_events();
-        glfw::flush_messages(&self.glfw_events)
-    }
-
+impl RenderingContext for Window {
     fn swap_buffers(&mut self) {
         self.glfw_window.swap_buffers();
+    }
+}
+
+impl EventSource for Window {
+    fn poll_events(&mut self) -> Vec<Event> {
+        self.glfw_instance.poll_events();
+        glfw::flush_messages(&self.glfw_events)
+            .filter_map(|(_, event)| {
+                match event {
+                    glfw::WindowEvent::Key(glfw_key, _, Action::Press, _) => {
+                        let key = Key::from_glfw_key(glfw_key);
+                        match key {
+                            Some(k) => Some(Event::KeyPress(k)),
+                            None => None,
+                        }
+                    }
+
+                    glfw::WindowEvent::Key(glfw_key, _, Action::Release, _) => {
+                        let key = Key::from_glfw_key(glfw_key);
+                        match key {
+                            Some(k) => Some(Event::KeyRelease(k)),
+                            None => None,
+                        }
+                    }
+
+                    // TODO: Add mouse movement
+                    _ => None,
+                }
+            })
+            .collect()
     }
 }
