@@ -3,8 +3,6 @@ use crate::client::state::ClientState;
 use crate::engine::events::{Event, EventSource};
 use crate::engine::inputs::Key;
 
-// TODO: Make W and S only move on the XZ plane
-
 /// The movement speed of the player
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct MovementSpeed {

@@ -1,4 +1,5 @@
 use super::controls;
+use super::debug;
 use super::initialisation;
 use super::state;
 use crate::engine;
@@ -7,8 +8,6 @@ use crate::world::chunk;
 const TITLE: &'static str = "MineCrust";
 const INITIAL_WIDTH: u32 = 1280;
 const INITIAL_HEIGHT: u32 = 720;
-
-const PRINT_FPS: bool = false;
 
 /// The main entrypoint for the game client
 pub struct Driver {
@@ -63,8 +62,8 @@ impl Driver {
 
             time_tracker.tick();
 
-            if PRINT_FPS {
-                println!("FPS: {}", 1.0 / time_tracker.dt());
+            if debug::DEBUGGING_ENABLED {
+                debug::print_debug_output(&self.state, time_tracker.dt());
             }
 
             // Handle all events that happened since the last frame

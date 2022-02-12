@@ -21,6 +21,41 @@ pub struct SceneObject {
 impl SceneObject {
     /// Compute the model matrix for this scene object
     pub fn model_matrix(&self) -> Matrix4<f32> {
-        Translation3::from(self.position).to_homogeneous()
+        compute_model_matrix(self.position)
+    }
+}
+
+#[inline]
+fn compute_model_matrix(position: Point3<f32>) -> Matrix4<f32> {
+    Translation3::from(position).to_homogeneous()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    fn test_model_matrix_correct_for_object_at_origin() {
+        let object_pos = Point3::origin();
+        #[rustfmt::skip]
+        let expected_model_matrix = Matrix4::new(1.0, 0.0, 0.0, 0.0,
+                                                 0.0, 1.0, 0.0, 0.0,
+                                                 0.0, 0.0, 1.0, 0.0,
+                                                 0.0, 0.0, 0.0, 1.0);
+        let actual = compute_model_matrix(object_pos);
+        assert_eq!(expected_model_matrix, actual);
+    }
+
+    #[rstest]
+    fn test_model_matrix_correct_for_object_not_at_origin() {
+        let object_pos = Point3::new(1.0, 2.0, 3.0);
+        #[rustfmt::skip]
+        let expected_model_matrix = Matrix4::new(1.0, 0.0, 0.0, 1.0,
+                                                 0.0, 1.0, 0.0, 2.0,
+                                                 0.0, 0.0, 1.0, 3.0,
+                                                 0.0, 0.0, 0.0, 1.0);
+        let actual = compute_model_matrix(object_pos);
+        assert_eq!(expected_model_matrix, actual);
     }
 }
