@@ -1,44 +1,26 @@
-use crate::client::controls::movement::Movable;
-use crate::client::state::ClientState;
+use crate::client::constants;
+use crate::client::controls::movement::{Rotatable, Translatable};
 use crate::engine::events::{Event, EventSource};
 use crate::engine::inputs::Key;
-
-// TODO: Make W and S only move on the XZ plane
-
-/// The movement speed of the player
-#[derive(Clone, Copy, Debug)]
-pub(crate) struct MovementSpeed {
-    linear_speed: f32,
-    angular_speed: f32,
-}
-
-impl Default for MovementSpeed {
-    fn default() -> Self {
-        MovementSpeed {
-            linear_speed: 4.0,
-            angular_speed: 1.2,
-        }
-    }
-}
 
 /// The main handler for processing input events
 pub(crate) struct ControlsHandler {
     close_pressed: bool,
-    player_movement_controller: WASDControlledMovementState,
-    player_movement_speed: MovementSpeed,
+    player_translation_controller: WASDTranslationController,
+    player_rotation_controller: MouseRotationController,
 }
 
 impl ControlsHandler {
     pub(crate) fn new() -> Self {
         ControlsHandler {
             close_pressed: false,
-            player_movement_controller: WASDControlledMovementState::new(),
-            player_movement_speed: MovementSpeed::default(),
+            player_translation_controller: WASDTranslationController::new(),
+            player_rotation_controller: MouseRotationController::default(),
         }
     }
 
     /// Consume all events from an `EventSource`, updating the client state accordingly
-    pub(crate) fn consume_events<T>(&mut self, source: &mut T, state: &mut ClientState, dt: f64)
+    pub(crate) fn consume_events<T>(&mut self, source: &mut T)
     where
         T: EventSource,
     {
@@ -46,38 +28,38 @@ impl ControlsHandler {
             match event {
                 Event::KeyPress(key) => self.on_key_press(key),
                 Event::KeyRelease(key) => self.on_key_release(key),
+                Event::MouseMove(dx, dy) => self.on_mouse_move(dx as f32, dy as f32),
             }
         }
-
-        self.move_player(&mut state.player_position, dt);
     }
 
     pub(crate) fn close_has_been_pressed(&self) -> bool {
         self.close_pressed
     }
 
+    pub(crate) fn move_player(&mut self, player: &mut (impl Rotatable + Translatable), dt: f64) {
+        self.player_translation_controller.update(player, dt);
+        self.player_rotation_controller.update(player);
+    }
+
     fn on_key_press(&mut self, key: Key) {
         if key == Key::Escape {
             self.close_pressed = true;
         } else {
-            self.player_movement_controller.on_key_press(key);
+            self.player_translation_controller.on_key_press(key);
         }
     }
 
     fn on_key_release(&mut self, key: Key) {
-        self.player_movement_controller.on_key_release(key);
+        self.player_translation_controller.on_key_release(key);
     }
 
-    fn move_player(&self, player: &mut impl Movable, dt: f64) {
-        self.player_movement_controller.movement_state.apply(
-            player,
-            dt,
-            self.player_movement_speed,
-        );
+    fn on_mouse_move(&mut self, dx: f32, dy: f32) {
+        self.player_rotation_controller.on_mouse_move(dx, dy);
     }
 }
 
-/// Encodes the current linear and angular movement status of the controlled object
+/// Encodes the current linear movement status of the controlled object
 #[derive(Clone, Copy, Default)]
 struct MovementState {
     moving_forwards: bool,
@@ -86,71 +68,16 @@ struct MovementState {
     moving_right: bool,
     moving_up: bool,
     moving_down: bool,
-    rotating_left: bool,
-    rotating_right: bool,
-    rotating_up: bool,
-    rotating_down: bool,
 }
 
-impl MovementState {
-    /// Apply the current movement state to a `Movable` object
-    fn apply<T>(&self, moveable: &mut T, dt: f64, movement_speed: MovementSpeed)
-    where
-        T: Movable,
-    {
-        let distance = movement_speed.linear_speed * (dt as f32);
-        let angle = movement_speed.angular_speed * (dt as f32);
-
-        if self.moving_forwards && !self.moving_backwards {
-            moveable.move_forwards(distance);
-        }
-
-        if self.moving_left && !self.moving_right {
-            moveable.move_left(distance);
-        }
-
-        if self.moving_backwards && !self.moving_forwards {
-            moveable.move_backwards(distance);
-        }
-
-        if self.moving_right && !self.moving_left {
-            moveable.move_right(distance);
-        }
-
-        if self.moving_up && !self.moving_down {
-            moveable.move_up(distance);
-        }
-
-        if self.moving_down && !self.moving_up {
-            moveable.move_down(distance);
-        }
-
-        if self.rotating_up && !self.rotating_down {
-            moveable.rotate_up(angle);
-        }
-
-        if self.rotating_down && !self.rotating_up {
-            moveable.rotate_down(angle);
-        }
-
-        if self.rotating_left && !self.rotating_right {
-            moveable.rotate_left(angle);
-        }
-
-        if self.rotating_right && !self.rotating_left {
-            moveable.rotate_right(angle);
-        }
-    }
-}
-
-/// A controller to move the player around the world with a standard WASD control scheme
-struct WASDControlledMovementState {
+/// A controller to translate the player around the world with a standard WASD control scheme
+struct WASDTranslationController {
     movement_state: MovementState,
 }
 
-impl WASDControlledMovementState {
+impl WASDTranslationController {
     pub fn new() -> Self {
-        WASDControlledMovementState {
+        WASDTranslationController {
             movement_state: MovementState::default(),
         }
     }
@@ -175,18 +102,6 @@ impl WASDControlledMovementState {
             }
             Key::F => {
                 self.movement_state.moving_down = true;
-            }
-            Key::Up => {
-                self.movement_state.rotating_up = true;
-            }
-            Key::Down => {
-                self.movement_state.rotating_down = true;
-            }
-            Key::Left => {
-                self.movement_state.rotating_left = true;
-            }
-            Key::Right => {
-                self.movement_state.rotating_right = true;
             }
 
             _ => {}
@@ -214,20 +129,69 @@ impl WASDControlledMovementState {
             Key::F => {
                 self.movement_state.moving_down = false;
             }
-            Key::Up => {
-                self.movement_state.rotating_up = false;
-            }
-            Key::Down => {
-                self.movement_state.rotating_down = false;
-            }
-            Key::Left => {
-                self.movement_state.rotating_left = false;
-            }
-            Key::Right => {
-                self.movement_state.rotating_right = false;
-            }
 
             _ => {}
         }
+    }
+
+    /// Apply the current movement state to a `Translatable` target
+    fn update<T>(&self, target: &mut T, dt: f64)
+    where
+        T: Translatable,
+    {
+        let distance = constants::MOVE_SPEED * (dt as f32);
+
+        if self.movement_state.moving_forwards && !self.movement_state.moving_backwards {
+            target.translate_forwards(distance);
+        }
+
+        if self.movement_state.moving_left && !self.movement_state.moving_right {
+            target.translate_left(distance);
+        }
+
+        if self.movement_state.moving_backwards && !self.movement_state.moving_forwards {
+            target.translate_backwards(distance);
+        }
+
+        if self.movement_state.moving_right && !self.movement_state.moving_left {
+            target.translate_right(distance);
+        }
+
+        if self.movement_state.moving_up && !self.movement_state.moving_down {
+            target.translate_up(distance);
+        }
+
+        if self.movement_state.moving_down && !self.movement_state.moving_up {
+            target.translate_down(distance);
+        }
+    }
+}
+
+/// A controller to rotate the player using standard mouse movement controls
+#[derive(Default)]
+struct MouseRotationController {
+    accumulated_dx: f32,
+    accumulated_dy: f32,
+}
+
+impl MouseRotationController {
+    fn on_mouse_move(&mut self, dx: f32, dy: f32) {
+        self.accumulated_dx += dx;
+        self.accumulated_dy += dy;
+    }
+
+    /// Apply the current turn state to a `Rotatable` target
+    fn update<T>(&mut self, target: &mut T)
+    where
+        T: Rotatable,
+    {
+        let yaw_adjustment = self.accumulated_dx * constants::TURN_SENSITIVITY;
+        let pitch_adjustment = self.accumulated_dy * constants::TURN_SENSITIVITY;
+
+        target.adjust_yaw(yaw_adjustment);
+        target.adjust_pitch(pitch_adjustment);
+
+        self.accumulated_dx = 0.0;
+        self.accumulated_dy = 0.0;
     }
 }
