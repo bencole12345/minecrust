@@ -66,8 +66,9 @@ impl Driver {
                 debug::print_debug_output(&self.state, time_tracker.dt());
             }
 
-            // Handle all events that happened since the last frame
-            controls.consume_events(&mut self.window, &mut self.state, time_tracker.dt());
+            // Apply controls to update the player's position
+            controls.consume_events(&mut self.window);
+            controls.move_player(&mut self.state.player_position, time_tracker.dt());
 
             let current_player_chunk =
                 chunk::ChunkIndex::from_player_position(self.state.player_position.position);
