@@ -5,32 +5,32 @@ pub const CHUNK_DEPTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 256;
 
 /// A 16x16x256 volume of space
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Chunk {
     /// The blocks contained in this chunk
     blocks: ChunkBlocks,
     // TODO: Compute lighting levels (don't serialise)
 }
 
-/// The unique index of a chunk
+/// The unique 2D integral coordinate of a chunk
 ///
 /// The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate
 /// corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
 /// first spawns in.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ChunkIndex {
+pub struct ChunkCoordinate {
     pub i: i32,
     pub j: i32,
 }
 
-/// A source of chunks guaranteed to work for any possible index.
+/// A source of chunks guaranteed to work for any possible chunk index
 ///
 /// Possible implementations may include loading chunks from a file or over a network.
 pub trait ChunkSource {
-    fn get_chunk_at(&self, index: &ChunkIndex) -> Chunk;
+    fn get_chunk_at(&self, coordinate: ChunkCoordinate) -> Chunk;
 }
 
-impl ChunkIndex {
+impl ChunkCoordinate {
     pub fn from_player_position(player_position: na::Point3<f32>) -> Self {
         let i = if player_position.x >= 0.0 {
             (player_position.x / (CHUNK_WIDTH as f32)) as i32
@@ -42,7 +42,7 @@ impl ChunkIndex {
         } else {
             (player_position.z / (CHUNK_DEPTH as f32)) as i32 - 1
         };
-        ChunkIndex { i, j }
+        ChunkCoordinate { i, j }
     }
 }
 
@@ -88,19 +88,19 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    #[case(Point3::new(1.0, 0.0, 1.0), ChunkIndex{i: 0, j: 0})]
-    #[case(Point3::new(1.0, 64.0, 1.0), ChunkIndex{i: 0, j: 0})]
-    #[case(Point3::new(8.0, 0.0, 1.0), ChunkIndex{i: 0, j: 0})]
-    #[case(Point3::new(16.1, 0.0, 0.0), ChunkIndex{i: 1, j: 0})]
-    #[case(Point3::new(0.0, 0.0, -16.1), ChunkIndex{i: 0, j: -2})]
-    #[case(Point3::new(0.0, 0.0, 16.1), ChunkIndex{i: 0, j: 1})]
-    #[case(Point3::new(8.0, 66.0, -8.0), ChunkIndex{i: 0, j: -1})]
-    #[case(Point3::new(17.0, 66.0, -8.0), ChunkIndex{i: 1, j: -1})]
+    #[case(Point3::new(1.0, 0.0, 1.0), ChunkCoordinate{i: 0, j: 0})]
+    #[case(Point3::new(1.0, 64.0, 1.0), ChunkCoordinate{i: 0, j: 0})]
+    #[case(Point3::new(8.0, 0.0, 1.0), ChunkCoordinate{i: 0, j: 0})]
+    #[case(Point3::new(16.1, 0.0, 0.0), ChunkCoordinate{i: 1, j: 0})]
+    #[case(Point3::new(0.0, 0.0, - 16.1), ChunkCoordinate{i: 0, j: - 2})]
+    #[case(Point3::new(0.0, 0.0, 16.1), ChunkCoordinate{i: 0, j: 1})]
+    #[case(Point3::new(8.0, 66.0, - 8.0), ChunkCoordinate{i: 0, j: - 1})]
+    #[case(Point3::new(17.0, 66.0, - 8.0), ChunkCoordinate{i: 1, j: - 1})]
     fn chunkindex_from_player_position_works(
         #[case] player_pos: na::Point3<f32>,
-        #[case] expected_index: ChunkIndex,
+        #[case] expected_index: ChunkCoordinate,
     ) {
-        let result = ChunkIndex::from_player_position(player_pos);
+        let result = ChunkCoordinate::from_player_position(player_pos);
         assert_eq!(expected_index, result);
     }
 }

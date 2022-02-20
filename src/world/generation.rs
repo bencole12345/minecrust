@@ -1,6 +1,6 @@
 use crate::world::block::Block;
 use crate::world::chunk::{
-    empty_blocks, Chunk, ChunkIndex, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH,
+    empty_blocks, Chunk, ChunkCoordinate, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH,
 };
 
 /// A basic `ChunkSource` that just emits flat chunks containing a layer of grass, three layers of
@@ -9,7 +9,7 @@ use crate::world::chunk::{
 pub struct FlatTerrainGenerator;
 
 impl ChunkSource for FlatTerrainGenerator {
-    fn get_chunk_at(&self, _index: &ChunkIndex) -> Chunk {
+    fn get_chunk_at(&self, _index: ChunkCoordinate) -> Chunk {
         let mut blocks = empty_blocks();
         for x in 0..CHUNK_WIDTH {
             for y in 0..CHUNK_HEIGHT {

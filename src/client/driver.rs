@@ -39,7 +39,7 @@ impl Driver {
         self.renderer.setup();
 
         let mut prev_player_chunk =
-            chunk::ChunkIndex::from_player_position(self.state.player_position.position);
+            chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
         self.state.chunks_state.initialise_loaded_chunks();
 
         'main_loop: loop {
@@ -71,7 +71,7 @@ impl Driver {
             controls.move_player(&mut self.state.player_position, time_tracker.dt());
 
             let current_player_chunk =
-                chunk::ChunkIndex::from_player_position(self.state.player_position.position);
+                chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
             if current_player_chunk != prev_player_chunk {
                 self.state.notify_player_changed_chunk(current_player_chunk);
             }

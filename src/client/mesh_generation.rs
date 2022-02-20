@@ -7,7 +7,7 @@ use crate::engine::model::{Model, VertexData, VertexDataLayoutInfo};
 use crate::engine::texture::{ImageFileFormat, Texture, TextureCoordinate};
 use crate::engine::SceneObject;
 use crate::world::block::{Block, NON_EMPTY_BLOCKS_COUNT};
-use crate::world::chunk::{Chunk, ChunkIndex, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
+use crate::world::chunk::{Chunk, ChunkCoordinate, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
 use crate::world::cube::CubeFace;
 
 const EPSILON: f32 = 0.01;
@@ -45,7 +45,7 @@ impl MeshGenerator {
     pub(crate) fn chunk_to_scene_object(
         &self,
         chunk: &Chunk,
-        chunk_index: &ChunkIndex,
+        coordinate: ChunkCoordinate,
     ) -> SceneObject {
         let mut vertex_buffer: Vec<f32> = vec![];
         let mut index_buffer: Vec<u32> = vec![];
@@ -143,9 +143,9 @@ impl MeshGenerator {
             texture: self.blocks_texture.clone(),
         };
 
-        let chunk_x = (chunk_index.i * CHUNK_WIDTH as i32) as f32;
+        let chunk_x = (coordinate.i * CHUNK_WIDTH as i32) as f32;
         let chunk_y = 0.0;
-        let chunk_z = (chunk_index.j * CHUNK_DEPTH as i32) as f32;
+        let chunk_z = (coordinate.j * CHUNK_DEPTH as i32) as f32;
         let position = Point3::new(chunk_x, chunk_y, chunk_z);
 
         let orientation = Vector3::new(0.0, 0.0, 0.0);

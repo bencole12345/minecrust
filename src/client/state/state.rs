@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use crate::client::state::chunks_state::ChunksState;
 use crate::engine::SceneObject;
-use crate::world::chunk::{ChunkIndex, ChunkSource};
+use crate::world::chunk::{ChunkCoordinate, ChunkSource};
 use crate::world::entity::EntityPosition;
 
 /// The client's view of the world's state
@@ -20,7 +20,7 @@ impl ClientState {
             roll: 0.0,
         };
 
-        let current_chunk_index = ChunkIndex { i: 0, j: 0 };
+        let current_chunk_index = ChunkCoordinate { i: 0, j: 0 };
         let chunks_state = ChunksState::new(chunk_source, current_chunk_index);
 
         ClientState {
@@ -30,7 +30,7 @@ impl ClientState {
     }
 
     /// Update the state in response to a change in the player's current chunk index
-    pub(crate) fn notify_player_changed_chunk(&mut self, new_chunk_index: ChunkIndex) {
+    pub(crate) fn notify_player_changed_chunk(&mut self, new_chunk_index: ChunkCoordinate) {
         self.chunks_state
             .notify_player_changed_chunk(new_chunk_index);
     }
