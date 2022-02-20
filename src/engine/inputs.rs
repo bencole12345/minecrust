@@ -32,6 +32,10 @@ pub enum Key {
     Left,
     Right,
     Escape,
+    LeftShift,
+    RightShift,
+    LeftCtrl,
+    RightCtrl
 }
 
 impl Key {
@@ -69,6 +73,10 @@ impl Key {
             glfw::Key::Left => Some(Key::Left),
             glfw::Key::Right => Some(Key::Right),
             glfw::Key::Escape => Some(Key::Escape),
+            glfw::Key::LeftShift => Some(Key::LeftShift),
+            glfw::Key::RightShift => Some(Key::RightShift),
+            glfw::Key::LeftControl => Some(Key::LeftCtrl),
+            glfw::Key::RightControl => Some(Key::RightCtrl),
             _ => None,
         }
     }

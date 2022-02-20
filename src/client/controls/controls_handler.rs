@@ -97,10 +97,10 @@ impl WASDTranslationController {
             Key::D => {
                 self.movement_state.moving_right = true;
             }
-            Key::R => {
+            Key::R | Key::LeftShift => {
                 self.movement_state.moving_up = true;
             }
-            Key::F => {
+            Key::F | Key::LeftCtrl => {
                 self.movement_state.moving_down = true;
             }
 
@@ -123,10 +123,10 @@ impl WASDTranslationController {
             Key::D => {
                 self.movement_state.moving_right = false;
             }
-            Key::R => {
+            Key::R | Key::LeftShift => {
                 self.movement_state.moving_up = false;
             }
-            Key::F => {
+            Key::F | Key::LeftCtrl => {
                 self.movement_state.moving_down = false;
             }
 
