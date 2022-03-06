@@ -71,11 +71,27 @@ impl EventSource for Window {
     fn poll_events(&mut self) -> Vec<Event> {
         self.glfw_instance.poll_events();
 
+        let mut screen_width = self.width;
+        let mut screen_height = self.height;
         let mut last_mouse_pos = self.last_mouse;
 
         let events: Vec<Event> = glfw::flush_messages(&self.glfw_events)
             .filter_map(|(_, event)| {
                 match event {
+                    glfw::WindowEvent::Size(width, height) => {
+                        screen_width = width as u32;
+                        screen_height = height as u32;
+                        unsafe { gl::Viewport(0, 0, width, height); }
+                        None
+                    }
+
+                    glfw::WindowEvent::CursorEnter(cursor_is_above_screen) => {
+                        if cursor_is_above_screen {
+                            w
+                        }
+                        None
+                    }
+
                     glfw::WindowEvent::Key(glfw_key, _, Action::Press, _) => {
                         let key = Key::from_glfw_key(glfw_key);
                         match key {
@@ -109,6 +125,8 @@ impl EventSource for Window {
             })
             .collect();
 
+        self.width = screen_width;
+        self.height = screen_height;
         self.last_mouse = last_mouse_pos;
 
         events
