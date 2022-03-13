@@ -42,6 +42,8 @@ impl Driver {
             chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
         self.state.chunks_state.initialise_loaded_chunks();
 
+        let fog_parameters = initialisation::make_fog_parameters();
+
         println!("Starting main loop");
 
         'main_loop: loop {
@@ -58,6 +60,7 @@ impl Driver {
                 &self.state.renderable_chunks(),
                 &self.scene_lighting,
                 &camera_pos,
+                &fog_parameters,
             );
             self.renderer.render_skybox(&self.skybox, &camera_pos);
             self.renderer.complete_render_pass(&mut self.window);

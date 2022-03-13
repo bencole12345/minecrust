@@ -6,6 +6,7 @@ use na::Vector3;
 
 use crate::engine::binding::BindGuard;
 use crate::engine::camera::CameraPosition;
+use crate::engine::fog::FogParameters;
 use crate::engine::lighting::{GlobalLight, PointLight, SceneLighting};
 use crate::engine::resources;
 use crate::engine::scene::SceneObject;
@@ -124,6 +125,7 @@ impl Renderer {
         objects: &Vec<&SceneObject>,
         scene: &SceneLighting,
         camera: &CameraPosition,
+        fog: &FogParameters,
     ) {
         // Bind shader program
         let _shader_program_guard = BindGuard::create_bind(&self.cubes_shader_program);
@@ -132,6 +134,7 @@ impl Renderer {
         write_camera_uniforms(&self.cubes_shader_program, camera);
         write_point_light_uniforms(&self.cubes_shader_program, &scene.point_lights);
         write_global_illuminant_uniforms(&self.cubes_shader_program, &scene.global_light);
+        write_fog_uniforms(&self.cubes_shader_program, fog);
 
         // Render each object
         for object in objects.iter() {
@@ -202,6 +205,7 @@ impl Renderer {
 
 #[inline]
 fn write_camera_uniforms(program: &ShaderProgram, camera: &CameraPosition) {
+    program.write_uniform(Uniform::CameraPosition(&camera.position.coords));
     program.write_uniform(Uniform::ViewMatrix(&camera.view_matrix()));
     program.write_uniform(Uniform::ProjectionMatrix(&camera.projection_matrix()));
 }
@@ -243,4 +247,10 @@ fn write_point_light_uniforms(program: &ShaderProgram, point_lights: &Vec<PointL
 #[inline]
 fn write_texture_uniforms(program: &ShaderProgram, texture_binding: &TextureBinding) {
     program.write_uniform(Uniform::ModelTexture(texture_binding));
+}
+
+#[inline]
+fn write_fog_uniforms(program: &ShaderProgram, fog_parameters: &FogParameters) {
+    program.write_uniform(Uniform::FogNearDistance(fog_parameters.start_threshold));
+    program.write_uniform(Uniform::FogFarDistance(fog_parameters.end_threshold));
 }

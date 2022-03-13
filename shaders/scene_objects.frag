@@ -9,12 +9,6 @@
  */
 
 
-/**
- * TODO: Render distance fog (just compute the distance from the camera and derive from that)
- * (Possibly use a triangle function starting from (RENDER_DISTANCE_CHUNKS-1) * chunk width)
- */
-
-
 #define NUM_POINT_LIGHT_SOURCES 4
 
 
@@ -36,14 +30,24 @@ struct GlobalIlluminant {
     float intensity;
 };
 
+/**
+ * Parameters about the thresholds for distance fog
+ */
+struct FogParameters {
+    float beginDistance;
+    float totalDistance;
+};
+
 
 in vec4 WorldPosition;
 in vec4 Normal;
 in vec2 TexCoord;
 
+uniform vec3 cameraPos;
 uniform GlobalIlluminant globalIlluminant;
 uniform PointLights pointLights;
 uniform sampler2D modelTexture;
+uniform FogParameters fogParameters;
 
 out vec4 FragColor;
 
@@ -86,6 +90,27 @@ vec3 irradianceFromPointLight(int i)
     return coefficient * intensity * colour / (dist*dist);
 }
 
+float computeOpacityFromFog()
+{
+    float distanceXZ = length(WorldPosition.xz - cameraPos.xz);
+    float w = (distanceXZ - fogParameters.beginDistance)
+    / (fogParameters.totalDistance - fogParameters.beginDistance);
+    return clamp(1.0 - w, 0.0, 1.0);
+}
+
+vec3 sampleSkybox()
+{
+    vec3 toFragment = WorldPosition.xyz - cameraPos;
+    float r = length(toFragment.xz);
+    float elevation = atan(toFragment.y / r + 0.00001);
+    float proportion = 1 - pow(cos(abs(elevation)), 3.0);
+
+    vec3 topColour = vec3(28.0/255.0, 17.0/255.0, 188.0/255.0);
+    vec3 middleColour = vec3(168.0/255.0, 226.0/255.0, 231.0/255.0);
+
+    return mix(middleColour, topColour, proportion);
+}
+
 vec3 toneMap(vec3 colourHDR)
 {
     return colourHDR / (vec3(1.0) + colourHDR);
@@ -115,7 +140,13 @@ void main()
     // Prepare colours for displaying
     vec3 toneMapped = toneMap(radiance);
     vec3 gammaEncoded = gammaEncode(toneMapped);
-    FragColor = vec4(gammaEncoded, base.a);
+
+    // Mix with distance fog
+    float alpha = computeOpacityFromFog();
+    vec3 bgColour = sampleSkybox();
+    vec3 finalRadiance = mix(bgColour, gammaEncoded, alpha);
+
+    FragColor = vec4(finalRadiance, alpha);
 }
 
 

@@ -4,6 +4,9 @@ use crate::engine::texture::TextureBinding;
 
 /// The supported uniforms that can be passed to a shader program
 pub(crate) enum Uniform<'a> {
+    /// The position of the camera in world space
+    CameraPosition(&'a Vector3<f32>),
+
     /// The model matrix for the object being rendered
     ModelMatrix(&'a Matrix4<f32>),
 
@@ -33,6 +36,12 @@ pub(crate) enum Uniform<'a> {
 
     /// The texture to be used when rendering a model
     ModelTexture(&'a TextureBinding),
+
+    /// Distance at which distance fog starts to be used
+    FogNearDistance(f32),
+
+    /// Distance at which distance fog becomes total
+    FogFarDistance(f32),
 }
 
 impl<'a> Uniform<'a> {
@@ -40,6 +49,7 @@ impl<'a> Uniform<'a> {
     pub(crate) const fn get_name_in_shader(&self) -> &str {
         // TODO: Use PHF (https://crates.io/crates/phf) to speed this up
         match self {
+            Uniform::CameraPosition(_) => "cameraPos",
             Uniform::ModelMatrix(_) => "Model",
             Uniform::ViewMatrix(_) => "View",
             Uniform::ProjectionMatrix(_) => "Projection",
@@ -51,6 +61,8 @@ impl<'a> Uniform<'a> {
             Uniform::GlobalIlluminantIntensity(_) => "globalIlluminant.intensity",
             // TODO: Investigate why the texture still seems to work if I spell the uniform name wrong
             Uniform::ModelTexture(_) => "modelTexture",
+            Uniform::FogNearDistance(_) => "fogParameters.beginDistance",
+            Uniform::FogFarDistance(_) => "fogParameters.totalDistance",
         }
     }
 }

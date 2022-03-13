@@ -1,5 +1,6 @@
 mod binding;
 mod camera;
+mod fog;
 mod rendering;
 mod resources;
 mod scene;
@@ -16,6 +17,7 @@ pub mod model;
 pub mod texture;
 
 pub use camera::CameraPosition;
+pub use fog::FogParameters;
 pub use rendering::Renderer;
 pub use scene::SceneObject;
 pub use skybox::Skybox;

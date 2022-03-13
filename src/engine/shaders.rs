@@ -103,6 +103,7 @@ impl ShaderProgram {
         let name = uniform.get_name_in_shader();
         let position = self.lookup_uniform_location(name);
         unsafe {
+            // TODO: Make another constant function in uniform.rs that extracts the "uniform type"
             match uniform {
                 Uniform::ModelMatrix(m) | Uniform::ViewMatrix(m) | Uniform::ProjectionMatrix(m) => {
                     gl::UniformMatrix4fv(position, 1, gl::FALSE, m.as_ptr());
@@ -117,11 +118,11 @@ impl ShaderProgram {
                         gl::Uniform1fv(position, v.len().try_into().unwrap(), v.as_ptr())
                     };
                 }
-                Uniform::GlobalIlluminantDirection(v) | Uniform::GlobalIlluminantColour(v) => {
+                Uniform::CameraPosition(v) | Uniform::GlobalIlluminantDirection(v) | Uniform::GlobalIlluminantColour(v) => {
                     gl::Uniform3f(position, v.x, v.y, v.z);
                 }
-                Uniform::GlobalIlluminantIntensity(intensity) => {
-                    gl::Uniform1f(position, intensity);
+                Uniform::GlobalIlluminantIntensity(v) | Uniform::FogNearDistance(v) | Uniform::FogFarDistance(v) => {
+                    gl::Uniform1f(position, v);
                 }
                 // TODO: Work out what's going on here - it seems broken
                 Uniform::ModelTexture(_texture_binding) => {

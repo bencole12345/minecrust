@@ -5,7 +5,7 @@ use glm::fmod;
 /// This function is necessary because Rust's built-in modulo operator doesn't behave in a
 /// mathematically correct fashion for negative values of `a`.
 #[inline(always)]
-pub fn modulo(a: i32, n: u32) -> u32 {
+pub const fn modulo(a: i32, n: u32) -> u32 {
     let result = if a == 0 {
         0
     } else if a > 0 {
