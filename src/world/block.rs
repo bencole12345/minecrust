@@ -3,6 +3,7 @@ pub const NON_EMPTY_BLOCKS_COUNT: u32 = 3;
 
 /// Encodes all possible block types in the game world.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
 pub enum Block {
     Empty,
     Grass,

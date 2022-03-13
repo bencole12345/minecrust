@@ -27,7 +27,7 @@ pub struct ChunkCoordinate {
 ///
 /// Possible implementations may include loading chunks from a file or over a network.
 pub trait ChunkSource {
-    fn get_chunk_at(&self, coordinate: ChunkCoordinate) -> Chunk;
+    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Chunk;
 }
 
 impl ChunkCoordinate {
@@ -96,7 +96,7 @@ mod tests {
     #[case(Point3::new(0.0, 0.0, 16.1), ChunkCoordinate{i: 0, j: 1})]
     #[case(Point3::new(8.0, 66.0, - 8.0), ChunkCoordinate{i: 0, j: - 1})]
     #[case(Point3::new(17.0, 66.0, - 8.0), ChunkCoordinate{i: 1, j: - 1})]
-    fn chunkindex_from_player_position_works(
+    fn chunkcoordinate_from_player_position_works(
         #[case] player_pos: na::Point3<f32>,
         #[case] expected_index: ChunkCoordinate,
     ) {

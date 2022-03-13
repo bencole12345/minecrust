@@ -2,7 +2,6 @@ use crate::engine::inputs;
 
 /// An event from the runtime environment
 pub enum Event {
-
     /// A key was pressed
     KeyPress(inputs::Key),
 
