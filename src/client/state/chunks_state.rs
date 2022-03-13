@@ -1,7 +1,7 @@
 use crate::client::constants;
 use crate::client::mesh_generation::MeshGenerator;
-use crate::client::util::modulo;
 use crate::engine::SceneObject;
+use crate::utils::maths::modulo;
 use crate::world::chunk::{Chunk, ChunkCoordinate, ChunkSource};
 
 /// A wrapper struct to encode all state relating to the management of chunks in the client

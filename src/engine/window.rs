@@ -74,38 +74,36 @@ impl EventSource for Window {
         let mut last_mouse_pos = self.last_mouse;
 
         let events: Vec<Event> = glfw::flush_messages(&self.glfw_events)
-            .filter_map(|(_, event)| {
-                match event {
-                    glfw::WindowEvent::Key(glfw_key, _, Action::Press, _) => {
-                        let key = Key::from_glfw_key(glfw_key);
-                        match key {
-                            Some(k) => Some(Event::KeyPress(k)),
-                            None => None,
-                        }
+            .filter_map(|(_, event)| match event {
+                glfw::WindowEvent::Key(glfw_key, _, Action::Press, _) => {
+                    let key = Key::from_glfw_key(glfw_key);
+                    match key {
+                        Some(k) => Some(Event::KeyPress(k)),
+                        None => None,
                     }
-
-                    glfw::WindowEvent::Key(glfw_key, _, Action::Release, _) => {
-                        let key = Key::from_glfw_key(glfw_key);
-                        match key {
-                            Some(k) => Some(Event::KeyRelease(k)),
-                            None => None,
-                        }
-                    }
-
-                    glfw::WindowEvent::CursorPos(x, y) => {
-                        if let Some((prev_x, prev_y)) = self.last_mouse {
-                            let dx = (x - prev_x) / (self.width as f64);
-                            let dy = -1.0 * (y - prev_y) / (self.height as f64);
-                            last_mouse_pos = Some((x, y));
-                            Some(Event::MouseMove(dx, dy))
-                        } else {
-                            last_mouse_pos = Some((x, y));
-                            None
-                        }
-                    }
-
-                    _ => None,
                 }
+
+                glfw::WindowEvent::Key(glfw_key, _, Action::Release, _) => {
+                    let key = Key::from_glfw_key(glfw_key);
+                    match key {
+                        Some(k) => Some(Event::KeyRelease(k)),
+                        None => None,
+                    }
+                }
+
+                glfw::WindowEvent::CursorPos(x, y) => {
+                    if let Some((prev_x, prev_y)) = self.last_mouse {
+                        let dx = (x - prev_x) / (self.width as f64);
+                        let dy = -1.0 * (y - prev_y) / (self.height as f64);
+                        last_mouse_pos = Some((x, y));
+                        Some(Event::MouseMove(dx, dy))
+                    } else {
+                        last_mouse_pos = Some((x, y));
+                        None
+                    }
+                }
+
+                _ => None,
             })
             .collect();
 

@@ -35,7 +35,7 @@ pub enum Key {
     LeftShift,
     RightShift,
     LeftCtrl,
-    RightCtrl
+    RightCtrl,
 }
 
 impl Key {

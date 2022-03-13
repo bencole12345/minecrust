@@ -6,8 +6,8 @@ use crate::engine;
 use crate::world::chunk;
 
 const TITLE: &'static str = "MineCrust";
-const INITIAL_WIDTH: u32 = 1280;
-const INITIAL_HEIGHT: u32 = 720;
+const INITIAL_WIDTH: u32 = 1920;
+const INITIAL_HEIGHT: u32 = 1080;
 
 /// The main entrypoint for the game client
 pub struct Driver {
@@ -41,6 +41,8 @@ impl Driver {
         let mut prev_player_chunk =
             chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
         self.state.chunks_state.initialise_loaded_chunks();
+
+        println!("Starting main loop");
 
         'main_loop: loop {
             // Compute updated camera position

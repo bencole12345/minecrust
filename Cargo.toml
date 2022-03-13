@@ -11,6 +11,7 @@ glm = "0.2.3"
 image = "0.23.14"
 nalgebra = "0.29.0"
 packer = "0.5.3"
+rand = "0.8.5"
 
 [dev-dependencies]
 rstest="0.12.0"
