@@ -1,0 +1,16 @@
+[package]
+name = "sbs5k_world"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+glm = "0.2.3"
+nalgebra = "0.29.0"
+rand = "0.8.5"
+
+sbs5k_maths = { path = "../sbs5k_maths" }
+
+[dev-dependencies]
+rstest = "0.12.0"

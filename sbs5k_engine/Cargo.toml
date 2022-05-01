@@ -1,0 +1,15 @@
+[package]
+name = "sbs5k_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gl = "0.14.0"
+glfw = "0.42.0"
+glm = "0.2.3"
+image = "0.23.14"
+nalgebra = "0.29.0"
+packer = "0.5.3"
+
+[dev-dependencies]
+rstest = "0.12.0"

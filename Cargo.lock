@@ -801,6 +801,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "sbs5k_client"
+version = "0.1.0"
+dependencies = [
+ "glm",
+ "nalgebra",
+ "packer",
+ "rstest",
+ "sbs5k_engine",
+ "sbs5k_maths",
+ "sbs5k_world",
+]
+
+[[package]]
+name = "sbs5k_engine"
+version = "0.1.0"
+dependencies = [
+ "gl",
+ "glfw",
+ "glm",
+ "image",
+ "nalgebra",
+ "packer",
+ "rstest",
+]
+
+[[package]]
+name = "sbs5k_maths"
+version = "0.1.0"
+dependencies = [
+ "glm",
+ "rstest",
+]
+
+[[package]]
+name = "sbs5k_world"
+version = "0.1.0"
+dependencies = [
+ "glm",
+ "nalgebra",
+ "rand 0.8.5",
+ "rstest",
+ "sbs5k_maths",
+]
+
+[[package]]
 name = "scoped_threadpool"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -844,20 +889,6 @@ dependencies = [
  "num-traits",
  "paste",
  "wide",
-]
-
-[[package]]
-name = "super-block-simulator-5000"
-version = "0.1.0"
-dependencies = [
- "gl",
- "glfw",
- "glm",
- "image",
- "nalgebra",
- "packer",
- "rand 0.8.5",
- "rstest",
 ]
 
 [[package]]
