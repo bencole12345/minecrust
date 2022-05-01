@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use na::{Point3, Vector3};
 
@@ -18,13 +18,14 @@ const EPSILON: f32 = 0.01;
 /// a new object for each mesh to generate, because doing so will enable it to reuse its block
 /// texture across all chunks.
 pub struct MeshGenerator {
-    blocks_texture: Rc<Texture>,
+    // TODO: Try and make this be a Rc not an Arc
+    blocks_texture: Arc<Texture>,
 }
 
 impl MeshGenerator {
     pub(crate) fn new() -> Self {
         MeshGenerator {
-            blocks_texture: Rc::new(Texture::new(
+            blocks_texture: Arc::new(Texture::new(
                 resources::cubes_texture(),
                 ImageFileFormat::Png,
             )),

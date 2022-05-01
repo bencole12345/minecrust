@@ -115,7 +115,7 @@ impl PerlinNoiseGenerator {
 }
 
 impl ChunkSource for PerlinNoiseGenerator {
-    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Chunk {
+    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk> {
         let mut blocks = empty_blocks();
 
         for x in 0..CHUNK_WIDTH {
@@ -143,7 +143,7 @@ impl ChunkSource for PerlinNoiseGenerator {
             }
         }
 
-        Chunk::new(blocks)
+        Box::new(Chunk::new(blocks))
     }
 }
 

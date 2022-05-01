@@ -9,7 +9,7 @@ use crate::world::chunk::{
 pub struct FlatTerrainGenerator;
 
 impl ChunkSource for FlatTerrainGenerator {
-    fn get_chunk_at(&mut self, _coordinate: ChunkCoordinate) -> Chunk {
+    fn get_chunk_at(&mut self, _coordinate: ChunkCoordinate) -> Box<Chunk> {
         let mut blocks = empty_blocks();
         for x in 0..CHUNK_WIDTH {
             for y in 0..CHUNK_HEIGHT {
@@ -27,6 +27,6 @@ impl ChunkSource for FlatTerrainGenerator {
                 }
             }
         }
-        Chunk::new(blocks)
+        Box::new(Chunk::new(blocks))
     }
 }

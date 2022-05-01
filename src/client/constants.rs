@@ -1,5 +1,5 @@
 /// The "radius" of the square of renderable chunks
-pub const RENDER_DISTANCE_CHUNKS: u32 = 5;
+pub const RENDER_DISTANCE_CHUNKS: u32 = 15;
 
 /// The length of the side of the square of renderable chunks, in chunk lengths
 pub const RENDERABLE_CHUNKS_SQUARE_EDGE_SIZE: u32 = 1 + 2 * RENDER_DISTANCE_CHUNKS;

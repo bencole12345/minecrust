@@ -3,7 +3,7 @@ mod controls;
 mod debug;
 mod driver;
 mod initialisation;
-mod mesh_generation;
+mod loading;
 mod resources;
 mod state;
 

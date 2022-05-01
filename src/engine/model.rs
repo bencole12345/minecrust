@@ -1,6 +1,6 @@
 use std::mem;
 use std::os;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use gl::types::*;
 
@@ -36,7 +36,7 @@ pub struct VertexData {
 #[derive(Debug)]
 pub struct Model {
     pub vertices: VertexData,
-    pub texture: Rc<Texture>,
+    pub texture: Arc<Texture>,
 }
 
 impl VertexDataLayoutInfo {

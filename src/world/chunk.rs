@@ -27,7 +27,7 @@ pub struct ChunkCoordinate {
 ///
 /// Possible implementations may include loading chunks from a file or over a network.
 pub trait ChunkSource {
-    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Chunk;
+    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk>;
 }
 
 impl ChunkCoordinate {

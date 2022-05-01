@@ -18,6 +18,6 @@ extern crate rstest;
 
 fn main() {
     let chunks_source = Box::new(world::generators::PerlinNoiseGenerator::new());
-    let mut driver = client::Driver::new(chunks_source);
-    driver.run_game();
+    let mut driver = client::Driver::new();
+    driver.run_game(chunks_source);
 }
