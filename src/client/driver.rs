@@ -5,7 +5,7 @@ use super::state;
 use crate::engine;
 use crate::world::chunk;
 
-const TITLE: &str = "MineCrust";
+const TITLE: &str = "Super Block Simulator 5000";
 const INITIAL_WIDTH: u32 = 1920;
 const INITIAL_HEIGHT: u32 = 1080;
 

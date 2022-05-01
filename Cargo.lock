@@ -369,20 +369,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "minecrust"
-version = "0.1.0"
-dependencies = [
- "gl",
- "glfw",
- "glm",
- "image",
- "nalgebra",
- "packer",
- "rand 0.8.5",
- "rstest",
-]
-
-[[package]]
 name = "miniz_oxide"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -858,6 +844,20 @@ dependencies = [
  "num-traits",
  "paste",
  "wide",
+]
+
+[[package]]
+name = "super-block-simulator-5000"
+version = "0.1.0"
+dependencies = [
+ "gl",
+ "glfw",
+ "glm",
+ "image",
+ "nalgebra",
+ "packer",
+ "rand 0.8.5",
+ "rstest",
 ]
 
 [[package]]
