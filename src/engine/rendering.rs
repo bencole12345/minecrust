@@ -122,7 +122,7 @@ impl Renderer {
     /// Render a series of objects to the active render target
     pub fn render_objects(
         &self,
-        objects: &Vec<&SceneObject>,
+        objects: &[&SceneObject],
         scene: &SceneLighting,
         camera: &CameraPosition,
         fog: &FogParameters,
@@ -141,7 +141,7 @@ impl Renderer {
             // Set up textures
             // TODO: Allocate these more intelligently + consider integrating with BindGuard
             // TODO: Don't keep writing the same texture data
-            let texture_binding = object.model.texture.create_binding(gl::TEXTURE0);
+            let texture_binding = TextureBinding::new(&object.model.texture, gl::TEXTURE0);
             write_texture_uniforms(&self.cubes_shader_program, &texture_binding);
 
             // Bind this object's vertex data
@@ -227,7 +227,7 @@ fn write_global_illuminant_uniforms(program: &ShaderProgram, global_illuminant: 
 }
 
 #[inline]
-fn write_point_light_uniforms(program: &ShaderProgram, point_lights: &Vec<PointLight>) {
+fn write_point_light_uniforms(program: &ShaderProgram, point_lights: &[PointLight]) {
     let mut light_positions: Vec<Vector3<f32>> = vec![];
     let mut light_colours: Vec<Vector3<f32>> = vec![];
     let mut light_intensities: Vec<f32> = vec![];

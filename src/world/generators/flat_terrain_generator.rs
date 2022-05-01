@@ -11,6 +11,7 @@ pub struct FlatTerrainGenerator;
 impl ChunkSource for FlatTerrainGenerator {
     fn get_chunk_at(&mut self, _coordinate: ChunkCoordinate) -> Chunk {
         let mut blocks = empty_blocks();
+        #[allow(clippy::needless_range_loop)]
         for x in 0..CHUNK_WIDTH {
             for y in 0..CHUNK_HEIGHT {
                 for z in 0..CHUNK_DEPTH {

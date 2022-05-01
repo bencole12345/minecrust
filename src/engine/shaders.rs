@@ -118,10 +118,14 @@ impl ShaderProgram {
                         gl::Uniform1fv(position, v.len().try_into().unwrap(), v.as_ptr())
                     };
                 }
-                Uniform::CameraPosition(v) | Uniform::GlobalIlluminantDirection(v) | Uniform::GlobalIlluminantColour(v) => {
+                Uniform::CameraPosition(v)
+                | Uniform::GlobalIlluminantDirection(v)
+                | Uniform::GlobalIlluminantColour(v) => {
                     gl::Uniform3f(position, v.x, v.y, v.z);
                 }
-                Uniform::GlobalIlluminantIntensity(v) | Uniform::FogNearDistance(v) | Uniform::FogFarDistance(v) => {
+                Uniform::GlobalIlluminantIntensity(v)
+                | Uniform::FogNearDistance(v)
+                | Uniform::FogFarDistance(v) => {
                     gl::Uniform1f(position, v);
                 }
                 // TODO: Work out what's going on here - it seems broken

@@ -62,7 +62,7 @@ impl NormalisedPerlinNoiseSource {
         let dy = y - (y_rounded as f32);
         let displacement_vector = Vector2::new(dx, dy);
 
-        return gradient_vector.dot(&displacement_vector);
+        gradient_vector.dot(&displacement_vector)
     }
 }
 
@@ -118,6 +118,7 @@ impl ChunkSource for PerlinNoiseGenerator {
     fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Chunk {
         let mut blocks = empty_blocks();
 
+        #[allow(clippy::needless_range_loop)]
         for x in 0..CHUNK_WIDTH {
             for y in 0..CHUNK_HEIGHT {
                 for z in 0..CHUNK_DEPTH {

@@ -77,18 +77,12 @@ impl EventSource for Window {
             .filter_map(|(_, event)| match event {
                 glfw::WindowEvent::Key(glfw_key, _, Action::Press, _) => {
                     let key = Key::from_glfw_key(glfw_key);
-                    match key {
-                        Some(k) => Some(Event::KeyPress(k)),
-                        None => None,
-                    }
+                    key.map(Event::KeyPress)
                 }
 
                 glfw::WindowEvent::Key(glfw_key, _, Action::Release, _) => {
                     let key = Key::from_glfw_key(glfw_key);
-                    match key {
-                        Some(k) => Some(Event::KeyRelease(k)),
-                        None => None,
-                    }
+                    key.map(Event::KeyRelease)
                 }
 
                 glfw::WindowEvent::CursorPos(x, y) => {

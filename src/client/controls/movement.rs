@@ -41,7 +41,7 @@ impl Translatable for entity::EntityPosition {
         let y = 0.0;
         let z = cos(self.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position = self.position + direction * distance;
+        self.position += direction * distance;
     }
 
     fn translate_backwards(&mut self, distance: f32) {
@@ -49,7 +49,7 @@ impl Translatable for entity::EntityPosition {
         let y = 0.0;
         let z = -cos(self.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position = self.position + direction * distance;
+        self.position += direction * distance;
     }
 
     fn translate_left(&mut self, distance: f32) {
@@ -57,7 +57,7 @@ impl Translatable for entity::EntityPosition {
         let y: f32 = 0.0;
         let z = sin(self.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position = self.position + direction * distance;
+        self.position += direction * distance;
     }
 
     fn translate_right(&mut self, distance: f32) {
@@ -65,17 +65,17 @@ impl Translatable for entity::EntityPosition {
         let y = 0.0;
         let z = -sin(self.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position = self.position + direction * distance;
+        self.position += direction * distance;
     }
 
     fn translate_up(&mut self, distance: f32) {
         let direction = Vector3::new(0.0, 1.0, 0.0);
-        self.position = self.position + direction * distance;
+        self.position += direction * distance;
     }
 
     fn translate_down(&mut self, distance: f32) {
         let direction = Vector3::new(0.0, -1.0, 0.0);
-        self.position = self.position + direction * distance;
+        self.position += direction * distance;
     }
 }
 

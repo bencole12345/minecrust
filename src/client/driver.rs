@@ -5,7 +5,7 @@ use super::state;
 use crate::engine;
 use crate::world::chunk;
 
-const TITLE: &'static str = "MineCrust";
+const TITLE: &str = "MineCrust";
 const INITIAL_WIDTH: u32 = 1920;
 const INITIAL_HEIGHT: u32 = 1080;
 

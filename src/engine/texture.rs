@@ -80,15 +80,6 @@ impl Texture {
 
         Texture { texture_id }
     }
-
-    /// Binds the texture to a specified texture unit. The returned `TextureBinding` will
-    /// automatically unbind the texture when it gets dropped.
-    ///
-    /// Note that ignoring the returned `TextureBinding` will cause the texture to be unbound
-    /// immediately after the function returns.
-    pub(crate) fn create_binding(&self, texture_unit: GLenum) -> TextureBinding {
-        TextureBinding::new(&self, texture_unit)
-    }
 }
 
 impl Drop for Texture {
