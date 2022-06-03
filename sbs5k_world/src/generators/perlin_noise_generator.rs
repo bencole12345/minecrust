@@ -116,7 +116,7 @@ impl PerlinNoiseGenerator {
 }
 
 impl ChunkSource for PerlinNoiseGenerator {
-    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Chunk {
+    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk> {
         let mut blocks = empty_blocks();
 
         #[allow(clippy::needless_range_loop)]
@@ -145,7 +145,7 @@ impl ChunkSource for PerlinNoiseGenerator {
             }
         }
 
-        Chunk::new(blocks)
+        Box::new(Chunk::new(blocks))
     }
 }
 

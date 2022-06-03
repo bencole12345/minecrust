@@ -87,6 +87,7 @@ impl Renderer {
 
     /// Set up the OpenGL environment ready to use this renderer
     pub fn setup(&mut self) {
+        // TODO: Consider moving this to the constructor
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
 
