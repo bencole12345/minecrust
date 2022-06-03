@@ -87,3 +87,9 @@ impl Skybox {
         Skybox { model }
     }
 }
+
+impl Default for Skybox {
+    fn default() -> Self {
+        Skybox::new()
+    }
+}

@@ -149,6 +149,12 @@ impl ChunkSource for PerlinNoiseGenerator {
     }
 }
 
+impl Default for PerlinNoiseGenerator {
+    fn default() -> Self {
+        PerlinNoiseGenerator::new()
+    }
+}
+
 fn generate_random_vector() -> Vector2<f32> {
     let mut rng = rand::thread_rng();
     let theta = rng.gen::<f32>() * PI;

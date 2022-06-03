@@ -203,6 +203,12 @@ impl Renderer {
     }
 }
 
+impl Default for Renderer {
+    fn default() -> Self {
+        Renderer::new()
+    }
+}
+
 #[inline]
 fn write_camera_uniforms(program: &ShaderProgram, camera: &CameraPosition) {
     program.write_uniform(Uniform::CameraPosition(&camera.position.coords));

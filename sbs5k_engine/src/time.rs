@@ -29,6 +29,12 @@ impl TimeTracker {
     }
 }
 
+impl Default for TimeTracker {
+    fn default() -> Self {
+        TimeTracker::new()
+    }
+}
+
 fn get_time() -> f64 {
     unsafe { glfw::ffi::glfwGetTime() }
 }
