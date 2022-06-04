@@ -19,7 +19,7 @@ pub struct Chunk {
 /// The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate
 /// corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
 /// first spawns in.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct ChunkCoordinate {
     pub i: i32,
     pub j: i32,
@@ -29,7 +29,7 @@ pub struct ChunkCoordinate {
 ///
 /// Possible implementations may include loading chunks from a file or over a network.
 pub trait ChunkSource {
-    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Chunk;
+    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk>;
 }
 
 impl ChunkCoordinate {

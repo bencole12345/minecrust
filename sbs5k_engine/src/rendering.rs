@@ -79,15 +79,9 @@ impl Renderer {
         let skybox_shader_program =
             ShaderProgram::new(skybox_vertex_shader, skybox_fragment_shader);
 
-        Renderer {
-            cubes_shader_program,
-            skybox_shader_program,
-        }
-    }
-
-    /// Set up the OpenGL environment ready to use this renderer
-    pub fn setup(&mut self) {
+        // Initial setup of the OpenGL environment
         unsafe {
+            // Depth test so that the Z-buffer works
             gl::Enable(gl::DEPTH_TEST);
 
             // Cull faces oriented away from the camera to avoid wasted work
@@ -97,6 +91,11 @@ impl Renderer {
 
             // Enable multisampling for anti-aliasing
             gl::Enable(gl::MULTISAMPLE);
+        }
+
+        Renderer {
+            cubes_shader_program,
+            skybox_shader_program,
         }
     }
 

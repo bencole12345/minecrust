@@ -3,7 +3,7 @@ mod controls;
 mod debug;
 mod driver;
 mod initialisation;
-mod mesh_generation;
+mod loading;
 mod resources;
 mod state;
 
@@ -13,6 +13,6 @@ use crate::driver::Driver;
 
 fn main() {
     let chunks_source = Box::new(PerlinNoiseGenerator::new());
-    let mut driver = Driver::new(chunks_source);
-    driver.run_game();
+    let mut driver = Driver::new();
+    driver.run_game(chunks_source);
 }
