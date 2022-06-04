@@ -11,7 +11,7 @@ use super::chunks_state::ChunksState;
 pub(crate) struct ClientState {
     pub player_position: EntityPosition,
     pub chunks_state: ChunksState,
-    pub is_live: Arc<RwLock<bool>>
+    pub is_live: Arc<RwLock<bool>>,
 }
 
 impl ClientState {
@@ -35,7 +35,7 @@ impl Default for ClientState {
         ClientState {
             player_position,
             chunks_state,
-            is_live
+            is_live,
         }
     }
 }

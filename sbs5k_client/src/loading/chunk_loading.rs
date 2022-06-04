@@ -1,4 +1,4 @@
-use std::sync::{Arc, mpsc, RwLock};
+use std::sync::{mpsc, Arc, RwLock};
 
 use sbs5k_world::chunk::{Chunk, ChunkCoordinate, ChunkSource};
 
@@ -7,6 +7,7 @@ use crate::constants;
 pub(crate) enum ChunkLoadRequest {
     InitialLoad(ChunkCoordinate),
     ChunkChangeLoad(ChunkCoordinate),
+    Stop,
 }
 
 pub(crate) struct ChunkLoadResult {
@@ -17,21 +18,26 @@ pub(crate) struct ChunkLoadResult {
 pub(crate) struct ChunkLoader {
     chunk_source: Box<dyn ChunkSource + Send>,
     current_chunk_coordinate: ChunkCoordinate,
-    is_live_flag: Arc<RwLock<bool>>
+    is_live_flag: Arc<RwLock<bool>>,
 }
 
 impl ChunkLoader {
     pub(crate) fn new(
-        chunk_source: Box<dyn ChunkSource + Send>, is_live_flag: Arc<RwLock<bool>>
+        chunk_source: Box<dyn ChunkSource + Send>,
+        is_live_flag: Arc<RwLock<bool>>,
     ) -> Self {
         Self {
             chunk_source,
             current_chunk_coordinate: ChunkCoordinate::default(),
-            is_live_flag
+            is_live_flag,
         }
     }
 
-    pub(crate) fn generate_chunks_until_stop(&mut self, requests_receiver: mpsc::Receiver<ChunkLoadRequest>, mut responses_sender: mpsc::Sender<ChunkLoadResult>) {
+    pub(crate) fn generate_chunks_until_stop(
+        &mut self,
+        requests_receiver: mpsc::Receiver<ChunkLoadRequest>,
+        mut responses_sender: mpsc::Sender<ChunkLoadResult>,
+    ) {
         'generate_loop: for chunk_load_request in requests_receiver {
             // Stop early if the game is no longer live
             if !*self.is_live_flag.read().unwrap() {
@@ -46,6 +52,10 @@ impl ChunkLoader {
 
                 ChunkLoadRequest::ChunkChangeLoad(coordinate) => {
                     self.process_chunk_change_load(coordinate, &mut responses_sender);
+                }
+
+                ChunkLoadRequest::Stop => {
+                    break 'generate_loop;
                 }
             }
         }

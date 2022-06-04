@@ -1,6 +1,6 @@
-use std::sync::mpsc;
 use sbs5k_engine as engine;
 use sbs5k_world::chunk;
+use std::sync::mpsc;
 use std::thread;
 
 use crate::debug;
@@ -57,7 +57,9 @@ impl Driver {
         let mut prev_player_chunk =
             chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
 
-        chunk_load_request_tx.send(ChunkLoadRequest::InitialLoad(prev_player_chunk)).unwrap();
+        chunk_load_request_tx
+            .send(ChunkLoadRequest::InitialLoad(prev_player_chunk))
+            .unwrap();
 
         // TODO: Put this behind a --verbose command line argument
         println!("Starting main loop");
@@ -107,7 +109,9 @@ impl Driver {
             let current_player_chunk =
                 chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
             if current_player_chunk != prev_player_chunk {
-                chunk_load_request_tx.send(ChunkLoadRequest::ChunkChangeLoad(current_player_chunk)).unwrap();
+                chunk_load_request_tx
+                    .send(ChunkLoadRequest::ChunkChangeLoad(current_player_chunk))
+                    .unwrap();
             }
             prev_player_chunk = current_player_chunk;
 
@@ -117,6 +121,7 @@ impl Driver {
         }
 
         self.state.mark_dead();
+        chunk_load_request_tx.send(ChunkLoadRequest::Stop).unwrap();
         chunk_loader_thread_handle.join().unwrap();
     }
 }

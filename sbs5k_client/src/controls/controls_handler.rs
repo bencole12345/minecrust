@@ -3,7 +3,6 @@ use sbs5k_engine::inputs::Key;
 
 use crate::constants;
 use crate::controls::movement::{Rotatable, Translatable};
-use crate::state::ClientState;
 
 /// The main handler for processing input events
 pub(crate) struct ControlsHandler {
