@@ -5,7 +5,8 @@ use nalgebra::Point3;
 
 use sbs5k_world::entity::EntityPosition;
 
-use super::chunks_state::ChunksState;
+use crate::Args;
+use crate::state::chunks_state::ChunksState;
 
 /// The client's view of the world's state
 pub(crate) struct ClientState {
@@ -22,13 +23,7 @@ pub(crate) struct ClientState {
 }
 
 impl ClientState {
-    pub(crate) fn mark_dead(&self) {
-        *self.is_live.write().unwrap() = false;
-    }
-}
-
-impl Default for ClientState {
-    fn default() -> Self {
+    pub(crate) fn new(config: &Args) -> Self {
         let player_position = EntityPosition {
             position: Point3::new(8.0, 66.0, 8.0),
             yaw: PI,
@@ -36,7 +31,7 @@ impl Default for ClientState {
             roll: 0.0,
         };
 
-        let chunks_state = ChunksState::default();
+        let chunks_state = ChunksState::new(config.render_distance);
         let is_live = Arc::new(RwLock::new(true));
 
         ClientState {
@@ -44,5 +39,9 @@ impl Default for ClientState {
             chunks_state,
             is_live,
         }
+    }
+
+    pub(crate) fn mark_dead(&self) {
+        *self.is_live.write().unwrap() = false;
     }
 }

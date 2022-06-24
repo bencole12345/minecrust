@@ -1,9 +1,12 @@
 [package]
 name = "sbs5k_client"
+description = "A rip-off of a game you've never heard of..."
 version = "0.1.0"
 edition = "2021"
+authors = ["Ben Cole <bencole12345@gmail.com>"]
 
 [dependencies]
+clap = { version = "3.1.18", features = ["derive"] }
 glm = "0.2.3"
 nalgebra = "0.29.0"
 packer = "0.5.3"
@@ -14,3 +17,7 @@ sbs5k_world = { path = "../sbs5k_world" }
 
 [dev-dependencies]
 rstest = "0.12.0"
+
+[[bin]]
+name = "sbs5k"
+path = "src/main.rs"

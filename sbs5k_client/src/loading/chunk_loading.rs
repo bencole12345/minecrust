@@ -2,7 +2,7 @@ use std::sync::{mpsc, Arc, RwLock};
 
 use sbs5k_world::chunk::{Chunk, ChunkCoordinate, ChunkSource};
 
-use crate::constants;
+use crate::Args;
 
 pub(crate) enum ChunkLoadRequest {
     InitialLoad(ChunkCoordinate),
@@ -18,17 +18,20 @@ pub(crate) struct ChunkLoadResult {
 pub(crate) struct ChunkLoader {
     chunk_source: Box<dyn ChunkSource + Send>,
     current_chunk_coordinate: ChunkCoordinate,
+    config: Args,
     is_live_flag: Arc<RwLock<bool>>,
 }
 
 impl ChunkLoader {
     pub(crate) fn new(
         chunk_source: Box<dyn ChunkSource + Send>,
+        config: Args,
         is_live_flag: Arc<RwLock<bool>>,
     ) -> Self {
         Self {
             chunk_source,
             current_chunk_coordinate: ChunkCoordinate::default(),
+            config,
             is_live_flag,
         }
     }
@@ -82,8 +85,8 @@ impl ChunkLoader {
 
         // Load the remaining initial chunks in a spiral shape around the player so that
         // the chunks closest to the player get loaded first
-        if constants::RENDER_DISTANCE_CHUNKS > 0 {
-            for d in 1..=(constants::RENDER_DISTANCE_CHUNKS as i32) {
+        if self.config.render_distance > 0 {
+            for d in 1..=(self.config.render_distance as i32) {
                 if !*live_flag.read().unwrap() {
                     return;
                 }
@@ -125,6 +128,7 @@ impl ChunkLoader {
         let coordinates_to_load = compute_chunks_to_load_after_player_current_chunk_change(
             self.current_chunk_coordinate,
             new_coordinate,
+            self.config.render_distance
         );
 
         self.current_chunk_coordinate = new_coordinate;
@@ -144,9 +148,10 @@ impl ChunkLoader {
 fn compute_chunks_to_load_after_player_current_chunk_change(
     old_chunk_coord: ChunkCoordinate,
     new_chunk_coord: ChunkCoordinate,
+    render_distance: u32,
 ) -> Vec<ChunkCoordinate> {
-    let range_before = renderable_chunk_indices_range(old_chunk_coord);
-    let range_after = renderable_chunk_indices_range(new_chunk_coord);
+    let range_before = renderable_chunk_indices_range(old_chunk_coord, render_distance);
+    let range_after = renderable_chunk_indices_range(new_chunk_coord, render_distance);
     let (min_chunk, max_chunk) = range_after;
 
     let mut coords = vec![];
@@ -163,12 +168,12 @@ fn compute_chunks_to_load_after_player_current_chunk_change(
 
 /// Compute the range of chunks that should be renderable for a given player index
 fn renderable_chunk_indices_range(
-    current_chunk_coord: ChunkCoordinate,
+    current_chunk_coord: ChunkCoordinate, render_distance: u32
 ) -> (ChunkCoordinate, ChunkCoordinate) {
-    let min_i = current_chunk_coord.i - constants::RENDER_DISTANCE_CHUNKS as i32;
-    let min_j = current_chunk_coord.j - constants::RENDER_DISTANCE_CHUNKS as i32;
-    let max_i = current_chunk_coord.i + constants::RENDER_DISTANCE_CHUNKS as i32;
-    let max_j = current_chunk_coord.j + constants::RENDER_DISTANCE_CHUNKS as i32;
+    let min_i = current_chunk_coord.i - render_distance as i32;
+    let min_j = current_chunk_coord.j - render_distance as i32;
+    let max_i = current_chunk_coord.i + render_distance as i32;
+    let max_j = current_chunk_coord.j + render_distance as i32;
     let min = ChunkCoordinate { i: min_i, j: min_j };
     let max = ChunkCoordinate { i: max_i, j: max_j };
     (min, max)
@@ -189,8 +194,9 @@ fn chunk_coordinate_is_in_range(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use constants::*;
     use rstest::*;
+
+    const RENDER_DISTANCE_CHUNKS: u32 = 10;
 
     #[rstest]
     #[case(ChunkCoordinate{i: 0, j: 0},
@@ -201,7 +207,7 @@ mod tests {
         #[case] expected_min: ChunkCoordinate,
         #[case] expected_max: ChunkCoordinate,
     ) {
-        let (actual_min, actual_max) = renderable_chunk_indices_range(chunk_coord);
+        let (actual_min, actual_max) = renderable_chunk_indices_range(chunk_coord, RENDER_DISTANCE_CHUNKS);
         assert_eq!(expected_min, actual_min);
         assert_eq!(expected_max, actual_max);
     }

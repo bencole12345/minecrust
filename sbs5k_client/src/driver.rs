@@ -4,6 +4,7 @@ use std::thread;
 use sbs5k_engine as engine;
 use sbs5k_world::chunk;
 
+use crate::args;
 use crate::debug;
 use crate::initialisation;
 use crate::loading::ChunkLoadRequest;
@@ -15,7 +16,8 @@ const INITIAL_WIDTH: u32 = 1920;
 const INITIAL_HEIGHT: u32 = 1080;
 
 /// The main entrypoint for the game client
-pub struct Driver {
+pub(crate) struct Driver {
+    config: args::Args,
     window: engine::Window,
     skybox: engine::Skybox,
     renderer: engine::Renderer,
@@ -26,27 +28,28 @@ pub struct Driver {
 }
 
 impl Driver {
-    pub fn new() -> Self {
+    pub(crate) fn new(config: args::Args) -> Self {
         Driver {
+            config,
             window: engine::Window::new(INITIAL_WIDTH, INITIAL_HEIGHT, TITLE),
             skybox: engine::Skybox::new(),
             renderer: engine::Renderer::new(),
             scene_lighting: initialisation::make_scene_lighting(),
-            fog_parameters: initialisation::make_fog_parameters(),
+            fog_parameters: initialisation::make_fog_parameters(&config),
             mesh_generator: loading::MeshGenerator::new(),
-            state: Box::new(state::ClientState::default()),
+            state: Box::new(state::ClientState::new(&config)),
         }
     }
 
     /// Run the game to completion
     ///
     /// This method contains the game's main loop.
-    pub fn run_game(&mut self, chunk_source: Box<dyn chunk::ChunkSource + Send>) {
+    pub(crate) fn run_game(&mut self, chunk_source: Box<dyn chunk::ChunkSource + Send>) {
         let mut time_tracker = engine::TimeTracker::new();
         let mut controls = controls::ControlsHandler::new();
 
         // Set up the asynchronous chunk loading system
-        let mut chunk_loader = loading::ChunkLoader::new(chunk_source, self.state.is_live.clone());
+        let mut chunk_loader = loading::ChunkLoader::new(chunk_source, self.config, self.state.is_live.clone());
         let (chunk_load_request_tx, chunk_load_request_rx) = mpsc::channel();
         let (chunk_load_result_tx, chunk_load_result_rx) = mpsc::channel();
         let chunk_loader_thread_handle = thread::spawn(move || {
@@ -60,8 +63,9 @@ impl Driver {
             .send(ChunkLoadRequest::InitialLoad(prev_player_chunk))
             .unwrap();
 
-        // TODO: Put this behind a --verbose command-line argument
-        println!("Starting main loop");
+        if self.config.verbose {
+            println!("Starting main loop");
+        }
 
         'main_loop: loop {
             // Respond to any chunk creation events
@@ -97,9 +101,8 @@ impl Driver {
 
             time_tracker.tick();
 
-            // TODO: Put this behind a --debug command-line argument
-            if debug::DEBUGGING_ENABLED {
-                debug::print_debug_output(&self.state, time_tracker.dt());
+            if self.config.is_in_debug_mode() {
+                debug::print_debug_output(&self.state, time_tracker.dt(), &self.config);
             }
 
             // Apply controls to update the player's position
