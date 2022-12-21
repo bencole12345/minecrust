@@ -89,15 +89,19 @@ impl Driver {
             };
 
             // Render scene to window
-            self.renderer.begin_render_pass(&self.window);
-            self.renderer.render_objects(
-                &self.state.chunks_state.renderable_chunks(),
-                &self.scene_lighting,
-                &camera_pos,
-                &self.fog_parameters,
-            );
-            self.renderer.render_skybox(&self.skybox, &camera_pos);
-            self.renderer.complete_render_pass(&mut self.window);
+            self.renderer
+                .do_render_pass(&mut self.window, &|render_target| {
+                    // Render each chunk
+                    render_target.render_objects(
+                        &self.state.chunks_state.renderable_chunks(),
+                        &self.scene_lighting,
+                        &camera_pos,
+                        &self.fog_parameters,
+                    );
+
+                    // Render the skybox
+                    render_target.render_skybox(&self.skybox, &camera_pos);
+                });
 
             time_tracker.tick();
 

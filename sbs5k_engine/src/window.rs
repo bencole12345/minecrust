@@ -2,7 +2,7 @@ use glfw::{Action, Context};
 
 use crate::events::{Event, EventSource};
 use crate::inputs::Key;
-use crate::rendering::RenderingContext;
+use crate::rendering::DisplayTarget;
 
 /// A window that will contain the game
 pub struct Window {
@@ -61,7 +61,7 @@ impl Window {
     }
 }
 
-impl RenderingContext for Window {
+impl DisplayTarget for Window {
     fn swap_buffers(&mut self) {
         self.glfw_window.swap_buffers();
     }

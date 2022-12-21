@@ -21,9 +21,24 @@ const BACKGROUND_B: f32 = 0.2;
 
 const MAX_POINT_LIGHTS: usize = 4;
 
-/// A target capable of being rendered to
-pub trait RenderingContext {
+/// A physical display to which a buffer can be displayed
+pub trait DisplayTarget {
     fn swap_buffers(&mut self);
+}
+
+/// A logical target to which scene objects can be rendered
+pub trait RenderTarget {
+    /// Render objects to the target
+    fn render_objects(
+        &self,
+        objects: &[&SceneObject],
+        lighting: &SceneLighting,
+        camera: &CameraPosition,
+        fog: &FogParameters,
+    );
+
+    /// Render a skybox to the active render target
+    fn render_skybox(&self, skybox: &Skybox, camera: &CameraPosition);
 }
 
 /// An object capable of rendering `SceneObject`s to a `RenderingContext`
@@ -100,7 +115,8 @@ impl Renderer {
     }
 
     /// Commence a render pass
-    pub fn begin_render_pass(&self, _target: &impl RenderingContext) {
+    #[inline(always)]
+    fn begin_render_pass(&self, _target: &impl DisplayTarget) {
         unsafe {
             gl::ClearColor(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -110,7 +126,8 @@ impl Renderer {
     /// Finalise a render pass
     ///
     /// This function will block until the GPU has finished all buffered draw calls.
-    pub fn complete_render_pass(&self, target: &mut impl RenderingContext) {
+    #[inline(always)]
+    fn complete_render_pass(&self, target: &mut impl DisplayTarget) {
         unsafe {
             // TODO: Decide policy around this
             gl::Finish();
@@ -118,8 +135,28 @@ impl Renderer {
         target.swap_buffers();
     }
 
-    /// Render a series of objects to the active render target
-    pub fn render_objects(
+    /// Render to a `RenderTarget`.
+    ///
+    /// The display will be automatically cleared before rendering and the buffers swapped after.
+    /// The supplied `render_impl` should contain *all* draw commands for this frame.
+    pub fn do_render_pass<F>(&mut self, target: &mut impl DisplayTarget, render_impl: &F)
+    where
+        F: Fn(&mut dyn RenderTarget),
+    {
+        self.begin_render_pass(target);
+        render_impl(self);
+        self.complete_render_pass(target);
+    }
+}
+
+impl Default for Renderer {
+    fn default() -> Self {
+        Renderer::new()
+    }
+}
+
+impl RenderTarget for Renderer {
+    fn render_objects(
         &self,
         objects: &[&SceneObject],
         scene: &SceneLighting,
@@ -161,8 +198,7 @@ impl Renderer {
         }
     }
 
-    /// Render a skybox to the active render target
-    pub fn render_skybox(&self, skybox: &Skybox, camera: &CameraPosition) {
+    fn render_skybox(&self, skybox: &Skybox, camera: &CameraPosition) {
         // Bind shader program
         let _shader_program_guard = BindGuard::create_bind(&self.skybox_shader_program);
 
@@ -199,12 +235,6 @@ impl Renderer {
             gl::DepthFunc(old_depth_func as u32);
             gl::CullFace(old_cull_face_mode as u32);
         }
-    }
-}
-
-impl Default for Renderer {
-    fn default() -> Self {
-        Renderer::new()
     }
 }
 
