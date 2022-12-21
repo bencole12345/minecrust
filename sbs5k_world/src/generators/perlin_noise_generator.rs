@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::f32::consts::PI;
 
 use sbs5k_maths::{interpolate, modulo_fp};
@@ -16,7 +16,7 @@ use rand::Rng;
 type Index = (i32, i32);
 
 struct NormalisedPerlinNoiseSource {
-    generated_vectors: HashMap<Index, Vector2<f32>>,
+    generated_vectors: BTreeMap<Index, Vector2<f32>>,
 }
 
 impl NormalisedPerlinNoiseSource {
