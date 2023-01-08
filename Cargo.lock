@@ -903,7 +903,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sbs5k_client"
+name = "sbs5k"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -911,9 +911,18 @@ dependencies = [
  "nalgebra",
  "packer",
  "rstest",
+ "sbs5k_core",
  "sbs5k_engine",
- "sbs5k_maths",
- "sbs5k_world",
+]
+
+[[package]]
+name = "sbs5k_core"
+version = "0.1.0"
+dependencies = [
+ "glm",
+ "nalgebra",
+ "rand 0.8.5",
+ "rstest",
 ]
 
 [[package]]
@@ -927,25 +936,6 @@ dependencies = [
  "nalgebra",
  "packer",
  "rstest",
-]
-
-[[package]]
-name = "sbs5k_maths"
-version = "0.1.0"
-dependencies = [
- "glm",
- "rstest",
-]
-
-[[package]]
-name = "sbs5k_world"
-version = "0.1.0"
-dependencies = [
- "glm",
- "nalgebra",
- "rand 0.8.5",
- "rstest",
- "sbs5k_maths",
 ]
 
 [[package]]
