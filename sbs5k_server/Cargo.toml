@@ -1,0 +1,12 @@
+[package]
+name = "sbs5k_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tonic = "0.8"
+
+sbs5k_messages = { path = "../sbs5k_messages" }

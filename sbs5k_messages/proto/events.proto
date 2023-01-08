@@ -1,0 +1,37 @@
+syntax = "proto3";
+package sbs5k_messages.events;
+
+import "world.proto";
+
+/*
+ * The primary type representing all events that can happen in the game world
+ */
+message Event {
+    oneof event {
+        PlayerConnect playerConnect = 1;
+        PlayerDisconnect playerDisconnect = 2;
+        PlayerMove playerMove = 3;
+        // TODO: Block change
+    }
+  }
+
+/*
+ * A player connected to the server
+ */
+message PlayerConnect {
+    world.PlayerPosition initialPosition = 1;
+}
+
+/*
+ * A player disconnected from the server
+ */
+message PlayerDisconnect {
+    int32 playerId = 1;
+}
+
+/*
+ * A player moved
+ */
+message PlayerMove {
+    world.PlayerPosition newPosition = 1;
+}

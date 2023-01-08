@@ -1,0 +1,23 @@
+syntax = "proto3";
+package sbs5k_messages.world;
+
+message PlayerPosition {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message PlayerState {
+    int32 playerId = 1;
+    PlayerPosition position = 2;
+    // TODO: Orientation
+}
+  
+message ChunkIndex {
+    int32 i = 1;
+    int32 j = 2;
+}
+  
+message BlockIndex {
+    // TODO: Index of a particular block within a chunk
+}

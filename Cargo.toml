@@ -3,4 +3,6 @@ members = [
     "sbs5k",
     "sbs5k_core",
     "sbs5k_engine",
+    "sbs5k_server",
+    "sbs5k_messages",
 ]

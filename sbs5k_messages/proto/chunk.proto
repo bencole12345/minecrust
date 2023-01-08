@@ -1,0 +1,4 @@
+syntax = "proto3";
+package sbs5k_messages.chunk;
+
+message empty {}

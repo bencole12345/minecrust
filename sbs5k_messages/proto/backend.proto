@@ -1,0 +1,49 @@
+syntax = "proto3";
+package sbs5k_messages.backend;
+
+import "events.proto";
+import "world.proto";
+
+/*
+ * The primary interface of the game's backend server
+ *
+ * This service defines all endpoints through which clients are expected to interact with
+ * the game's server.
+ */
+service SBS5kBackend {
+    /*
+     * Request the initial state of the game
+     */
+    rpc GetInitialState (GetInitialStateRequest) returns (GetInitialStateResponse);
+
+    /*
+     * Query for the set of chunks in a set of indices
+     */
+    rpc GetChunks (GetChunksRequest) returns (GetChunksResponse);
+
+    /*
+     * Commence a bidirectional event stream
+     *
+     * This is the interface through which clients will publish user-driven events,
+     * and how they'll learn of other users' events. The streams are expected to remain
+     * alive for the duration of the player being connected to the server
+     */
+    rpc StreamEvents (stream events.Event) returns (stream events.Event);
+}
+
+message GetInitialStateRequest {
+    string username = 1;
+}
+
+message GetInitialStateResponse {
+    world.PlayerState currentPlayer = 1;
+    repeated world.PlayerState otherPlayers = 2;
+}
+
+message GetChunksRequest {
+    world.ChunkIndex chunkIndex = 1;
+}
+
+message GetChunksResponse {
+    // TODO: Encode the chunk in here
+}
