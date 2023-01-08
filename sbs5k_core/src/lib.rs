@@ -3,3 +3,4 @@ pub mod chunk;
 pub mod cube;
 pub mod entity;
 pub mod generators;
+pub mod maths;

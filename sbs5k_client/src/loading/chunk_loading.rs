@@ -1,6 +1,6 @@
 use std::sync::{mpsc, Arc, RwLock};
 
-use sbs5k_world::chunk::{Chunk, ChunkCoordinate, ChunkSource};
+use sbs5k_core::chunk::{Chunk, ChunkCoordinate, ChunkSource};
 
 use crate::Args;
 

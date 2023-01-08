@@ -10,7 +10,7 @@ mod state;
 
 use clap::Parser;
 
-use sbs5k_world::generators::PerlinNoiseGenerator;
+use sbs5k_core::generators::PerlinNoiseGenerator;
 
 use crate::args::Args;
 use crate::driver::Driver;

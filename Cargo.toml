@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "sbs5k_client",
+    "sbs5k_core",
     "sbs5k_engine",
-    "sbs5k_maths",
-    "sbs5k_world"
 ]

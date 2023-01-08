@@ -32,6 +32,8 @@ pub trait ChunkSource {
     fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk>;
 }
 
+// TODO: Define a type for PlayerPosition? (WorldPosition?)
+// TODO: Use the From trait for this?
 impl ChunkCoordinate {
     pub fn from_player_position(player_position: Point3<f32>) -> Self {
         let i = if player_position.x >= 0.0 {

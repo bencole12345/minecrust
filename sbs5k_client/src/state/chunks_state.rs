@@ -1,6 +1,6 @@
+use sbs5k_core::chunk::{Chunk, ChunkCoordinate};
+use sbs5k_core::maths::modulo;
 use sbs5k_engine::SceneObject;
-use sbs5k_maths::modulo;
-use sbs5k_world::chunk::{Chunk, ChunkCoordinate};
 
 /// A wrapper struct to encode all state relating to the management of chunks in the client
 pub(crate) struct ChunksState {

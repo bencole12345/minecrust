@@ -11,9 +11,8 @@ glm = "0.2.3"
 nalgebra = "0.29.0"
 packer = "0.5.3"
 
+sbs5k_core = { path = "../sbs5k_core" }
 sbs5k_engine = { path = "../sbs5k_engine" }
-sbs5k_maths = { path = "../sbs5k_maths" }
-sbs5k_world = { path = "../sbs5k_world" }
 
 [dev-dependencies]
 rstest = "0.12.0"

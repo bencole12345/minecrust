@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 
 use nalgebra::Point3;
 
-use sbs5k_world::entity::EntityPosition;
+use sbs5k_core::entity::EntityPosition;
 
 use crate::Args;
 use crate::state::chunks_state::ChunksState;

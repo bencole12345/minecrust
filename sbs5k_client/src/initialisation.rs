@@ -2,8 +2,8 @@ use std::cmp::min;
 
 use nalgebra::Vector3;
 
+use sbs5k_core::chunk;
 use sbs5k_engine::{lighting, FogParameters};
-use sbs5k_world::chunk;
 
 use crate::Args;
 

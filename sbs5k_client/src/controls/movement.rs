@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use glm::{cos, fmod, sin};
 use nalgebra::Vector3;
 
-use sbs5k_world::entity;
+use sbs5k_core::entity;
 
 /// An object that can be translated relative to its current orientation
 pub trait Translatable {

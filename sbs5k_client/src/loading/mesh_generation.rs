@@ -2,12 +2,12 @@ use std::rc::Rc;
 
 use nalgebra::{Point3, Vector3};
 
+use sbs5k_core::block::{Block, NON_EMPTY_BLOCKS_COUNT};
+use sbs5k_core::chunk::{Chunk, ChunkCoordinate, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
+use sbs5k_core::cube::CubeFace;
 use sbs5k_engine::model::{Model, VertexData, VertexDataLayoutInfo};
 use sbs5k_engine::texture::{ImageFileFormat, Texture, TextureCoordinate};
 use sbs5k_engine::SceneObject;
-use sbs5k_world::block::{Block, NON_EMPTY_BLOCKS_COUNT};
-use sbs5k_world::chunk::{Chunk, ChunkCoordinate, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
-use sbs5k_world::cube::CubeFace;
 
 use crate::resources;
 

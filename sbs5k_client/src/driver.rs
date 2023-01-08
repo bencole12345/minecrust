@@ -1,8 +1,8 @@
 use std::sync::mpsc;
 use std::thread;
 
+use sbs5k_core::chunk;
 use sbs5k_engine as engine;
-use sbs5k_world::chunk;
 
 use crate::args;
 use crate::debug;

@@ -1,12 +1,11 @@
 use std::collections::BTreeMap;
 use std::f32::consts::PI;
 
-use sbs5k_maths::{interpolate, modulo_fp};
-
 use crate::block::Block;
 use crate::chunk::{
     empty_blocks, Chunk, ChunkCoordinate, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH,
 };
+use crate::maths::{interpolate, modulo_fp};
 
 use glm::{cos, floor, sin};
 use nalgebra::Vector2;
