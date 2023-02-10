@@ -1,23 +1,61 @@
 syntax = "proto3";
 package sbs5k_messages.world;
 
-message PlayerPosition {
+/*
+ * A position in the world
+ */
+message Position {
     float x = 1;
     float y = 2;
     float z = 3;
 }
 
+/*
+ * The orientation of an object in the world
+ */
+message Orientation {
+    /*
+     * The elevation of the entity above the XZ plane, in radians
+     */
+    float pitch = 1;
+
+    /*
+     * The rotation of the entity clockwise around the Y axis from the +Z ray
+     */
+    float yaw = 2;
+
+    /*
+     * The rotation of the entity clockwise around a line through the XZ axis
+     */
+    float roll = 3;
+}
+
+/*
+ * All information about a particular player
+ */
 message PlayerState {
     int32 playerId = 1;
-    PlayerPosition position = 2;
-    // TODO: Orientation
+    Position position = 2;
+    Orientation orientation = 3;
 }
-  
+
+/*
+ * The unique 2D integral coordinate of a chunk
+ *
+ * The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate
+ * corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
+ * first spawns in.
+ */
 message ChunkIndex {
     int32 i = 1;
     int32 j = 2;
 }
-  
+
+/*
+ * The index of a block within a chunk
+ */
 message BlockIndex {
-    // TODO: Index of a particular block within a chunk
+    uint32 x = 1;
+    uint32 y = 2;
+    uint32 z = 3;
 }

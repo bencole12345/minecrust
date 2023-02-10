@@ -10,5 +10,7 @@ glm = "0.2.3"
 nalgebra = "0.29.0"
 rand = "0.8.5"
 
+sbs5k_messages = { path = "../sbs5k_messages" }
+
 [dev-dependencies]
 rstest = "0.12.0"

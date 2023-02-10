@@ -1,4 +1,8 @@
 syntax = "proto3";
 package sbs5k_messages.chunk;
 
-message empty {}
+import "block.proto";
+
+message Chunk {
+    repeated block.BlockType blocks = 1;
+}

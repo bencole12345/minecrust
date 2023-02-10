@@ -1,6 +1,5 @@
-use nalgebra::Point3;
-
 use crate::block::Block;
+use crate::world;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_DEPTH: usize = 16;
@@ -20,34 +19,41 @@ pub struct Chunk {
 /// corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
 /// first spawns in.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ChunkCoordinate {
+pub struct ChunkIndex {
     pub i: i32,
     pub j: i32,
+}
+
+impl From<sbs5k_messages::world::ChunkIndex> for ChunkIndex {
+    fn from(index: sbs5k_messages::world::ChunkIndex) -> Self {
+        ChunkIndex {
+            i: index.i,
+            j: index.j,
+        }
+    }
+}
+
+impl From<world::Position> for ChunkIndex {
+    fn from(position: world::Position) -> Self {
+        let i = if position.x >= 0.0 {
+            (position.x / (CHUNK_WIDTH as f32)) as i32
+        } else {
+            (position.x / (CHUNK_WIDTH as f32)) as i32 - 1
+        };
+        let j = if position.z >= 0.0 {
+            (position.z / (CHUNK_DEPTH as f32)) as i32
+        } else {
+            (position.z / (CHUNK_DEPTH as f32)) as i32 - 1
+        };
+        ChunkIndex { i, j }
+    }
 }
 
 /// A source of chunks guaranteed to work for any possible chunk index
 ///
 /// Possible implementations may include loading chunks from a file or over a network.
 pub trait ChunkSource {
-    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk>;
-}
-
-// TODO: Define a type for PlayerPosition? (WorldPosition?)
-// TODO: Use the From trait for this?
-impl ChunkCoordinate {
-    pub fn from_player_position(player_position: Point3<f32>) -> Self {
-        let i = if player_position.x >= 0.0 {
-            (player_position.x / (CHUNK_WIDTH as f32)) as i32
-        } else {
-            (player_position.x / (CHUNK_WIDTH as f32)) as i32 - 1
-        };
-        let j = if player_position.z >= 0.0 {
-            (player_position.z / (CHUNK_DEPTH as f32)) as i32
-        } else {
-            (player_position.z / (CHUNK_DEPTH as f32)) as i32 - 1
-        };
-        ChunkCoordinate { i, j }
-    }
+    fn get_chunk_at(&mut self, coordinate: ChunkIndex) -> Box<Chunk>;
 }
 
 pub type ChunkBlocks = [[[Block; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_WIDTH];
@@ -92,19 +98,19 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    #[case(Point3::new(1.0, 0.0, 1.0), ChunkCoordinate{i: 0, j: 0})]
-    #[case(Point3::new(1.0, 64.0, 1.0), ChunkCoordinate{i: 0, j: 0})]
-    #[case(Point3::new(8.0, 0.0, 1.0), ChunkCoordinate{i: 0, j: 0})]
-    #[case(Point3::new(16.1, 0.0, 0.0), ChunkCoordinate{i: 1, j: 0})]
-    #[case(Point3::new(0.0, 0.0, - 16.1), ChunkCoordinate{i: 0, j: - 2})]
-    #[case(Point3::new(0.0, 0.0, 16.1), ChunkCoordinate{i: 0, j: 1})]
-    #[case(Point3::new(8.0, 66.0, - 8.0), ChunkCoordinate{i: 0, j: - 1})]
-    #[case(Point3::new(17.0, 66.0, - 8.0), ChunkCoordinate{i: 1, j: - 1})]
+    #[case(Point3::new(1.0, 0.0, 1.0), ChunkIndex{i: 0, j: 0})]
+    #[case(Point3::new(1.0, 64.0, 1.0), ChunkIndex{i: 0, j: 0})]
+    #[case(Point3::new(8.0, 0.0, 1.0), ChunkIndex{i: 0, j: 0})]
+    #[case(Point3::new(16.1, 0.0, 0.0), ChunkIndex{i: 1, j: 0})]
+    #[case(Point3::new(0.0, 0.0, - 16.1), ChunkIndex{i: 0, j: - 2})]
+    #[case(Point3::new(0.0, 0.0, 16.1), ChunkIndex{i: 0, j: 1})]
+    #[case(Point3::new(8.0, 66.0, - 8.0), ChunkIndex{i: 0, j: - 1})]
+    #[case(Point3::new(17.0, 66.0, - 8.0), ChunkIndex{i: 1, j: - 1})]
     fn chunkcoordinate_from_player_position_works(
         #[case] player_pos: Point3<f32>,
-        #[case] expected_index: ChunkCoordinate,
+        #[case] expected_index: ChunkIndex,
     ) {
-        let result = ChunkCoordinate::from_player_position(player_pos);
+        let result = ChunkIndex::from(player_pos);
         assert_eq!(expected_index, result);
     }
 }

@@ -1,23 +1,23 @@
 use std::sync::{mpsc, Arc, RwLock};
 
-use sbs5k_core::chunk::{Chunk, ChunkCoordinate, ChunkSource};
+use sbs5k_core::chunk::{Chunk, ChunkIndex, ChunkSource};
 
 use crate::Args;
 
 pub(crate) enum ChunkLoadRequest {
-    InitialLoad(ChunkCoordinate),
-    ChunkChangeLoad(ChunkCoordinate),
+    InitialLoad(ChunkIndex),
+    ChunkChangeLoad(ChunkIndex),
     Stop,
 }
 
 pub(crate) struct ChunkLoadResult {
     pub chunk: Box<Chunk>,
-    pub coordinate: ChunkCoordinate,
+    pub coordinate: ChunkIndex,
 }
 
 pub(crate) struct ChunkLoader {
     chunk_source: Box<dyn ChunkSource + Send>,
-    current_chunk_coordinate: ChunkCoordinate,
+    current_chunk: ChunkIndex,
     config: Args,
     is_live_flag: Arc<RwLock<bool>>,
 }
@@ -30,7 +30,7 @@ impl ChunkLoader {
     ) -> Self {
         Self {
             chunk_source,
-            current_chunk_coordinate: ChunkCoordinate::default(),
+            current_chunk: Default::default(),
             config,
             is_live_flag,
         }
@@ -67,13 +67,13 @@ impl ChunkLoader {
     #[inline(always)]
     fn process_initial_load(
         &mut self,
-        initial_coordinate: ChunkCoordinate,
+        initial_coordinate: ChunkIndex,
         responses_channel: &mut mpsc::Sender<ChunkLoadResult>,
     ) {
         let live_flag = self.is_live_flag.clone();
 
         let mut load_chunk = |i, j| {
-            let coordinate = ChunkCoordinate { i, j };
+            let coordinate = ChunkIndex { i, j };
             let chunk = self.chunk_source.get_chunk_at(coordinate);
             let response = ChunkLoadResult { coordinate, chunk };
             let _ = responses_channel.send(response);
@@ -81,7 +81,7 @@ impl ChunkLoader {
 
         load_chunk(initial_coordinate.i, initial_coordinate.j);
 
-        self.current_chunk_coordinate = initial_coordinate;
+        self.current_chunk = initial_coordinate;
 
         // Load the remaining initial chunks in a spiral shape around the player so that
         // the chunks closest to the player get loaded first
@@ -122,16 +122,16 @@ impl ChunkLoader {
     #[inline(always)]
     fn process_chunk_change_load(
         &mut self,
-        new_coordinate: ChunkCoordinate,
+        new_coordinate: ChunkIndex,
         responses_channel: &mut mpsc::Sender<ChunkLoadResult>,
     ) {
         let coordinates_to_load = compute_chunks_to_load_after_player_current_chunk_change(
-            self.current_chunk_coordinate,
+            self.current_chunk,
             new_coordinate,
-            self.config.render_distance
+            self.config.render_distance,
         );
 
-        self.current_chunk_coordinate = new_coordinate;
+        self.current_chunk = new_coordinate;
 
         // TODO: Consider invalidating the old chunks
 
@@ -146,10 +146,10 @@ impl ChunkLoader {
 /// Compute the set of chunk coordinates that must be loaded (and the ones in their places dropped)
 /// if the player moved from `old_chunk_coord` to `new_chunk_coord`
 fn compute_chunks_to_load_after_player_current_chunk_change(
-    old_chunk_coord: ChunkCoordinate,
-    new_chunk_coord: ChunkCoordinate,
+    old_chunk_coord: ChunkIndex,
+    new_chunk_coord: ChunkIndex,
     render_distance: u32,
-) -> Vec<ChunkCoordinate> {
+) -> Vec<ChunkIndex> {
     let range_before = renderable_chunk_indices_range(old_chunk_coord, render_distance);
     let range_after = renderable_chunk_indices_range(new_chunk_coord, render_distance);
     let (min_chunk, max_chunk) = range_after;
@@ -157,7 +157,7 @@ fn compute_chunks_to_load_after_player_current_chunk_change(
     let mut coords = vec![];
     for i in min_chunk.i..=max_chunk.i {
         for j in min_chunk.j..=max_chunk.j {
-            let coord = ChunkCoordinate { i, j };
+            let coord = ChunkIndex { i, j };
             if !chunk_coordinate_is_in_range(coord, range_before) {
                 coords.push(coord);
             }
@@ -168,23 +168,21 @@ fn compute_chunks_to_load_after_player_current_chunk_change(
 
 /// Compute the range of chunks that should be renderable for a given player index
 fn renderable_chunk_indices_range(
-    current_chunk_coord: ChunkCoordinate, render_distance: u32
-) -> (ChunkCoordinate, ChunkCoordinate) {
+    current_chunk_coord: ChunkIndex,
+    render_distance: u32,
+) -> (ChunkIndex, ChunkIndex) {
     let min_i = current_chunk_coord.i - render_distance as i32;
     let min_j = current_chunk_coord.j - render_distance as i32;
     let max_i = current_chunk_coord.i + render_distance as i32;
     let max_j = current_chunk_coord.j + render_distance as i32;
-    let min = ChunkCoordinate { i: min_i, j: min_j };
-    let max = ChunkCoordinate { i: max_i, j: max_j };
+    let min = ChunkIndex { i: min_i, j: min_j };
+    let max = ChunkIndex { i: max_i, j: max_j };
     (min, max)
 }
 
 /// Determine whether a chunk coordinate lies within a given range
 #[inline]
-fn chunk_coordinate_is_in_range(
-    index: ChunkCoordinate,
-    range: (ChunkCoordinate, ChunkCoordinate),
-) -> bool {
+fn chunk_coordinate_is_in_range(index: ChunkIndex, range: (ChunkIndex, ChunkIndex)) -> bool {
     let (lower, upper) = range;
     let i_in_range = index.i >= lower.i && index.i <= upper.i;
     let j_in_range = index.j >= lower.j && index.j <= upper.j;
@@ -199,15 +197,16 @@ mod tests {
     const RENDER_DISTANCE_CHUNKS: u32 = 10;
 
     #[rstest]
-    #[case(ChunkCoordinate{i: 0, j: 0},
-    ChunkCoordinate{i: - (RENDER_DISTANCE_CHUNKS as i32), j: - (RENDER_DISTANCE_CHUNKS as i32)},
-    ChunkCoordinate{i: (RENDER_DISTANCE_CHUNKS as i32), j: (RENDER_DISTANCE_CHUNKS as i32)})]
+    #[case(ChunkIndex{i: 0, j: 0},
+    ChunkIndex{i: - (RENDER_DISTANCE_CHUNKS as i32), j: - (RENDER_DISTANCE_CHUNKS as i32)},
+    ChunkIndex{i: (RENDER_DISTANCE_CHUNKS as i32), j: (RENDER_DISTANCE_CHUNKS as i32)})]
     fn renderable_chunk_range_works(
-        #[case] chunk_coord: ChunkCoordinate,
-        #[case] expected_min: ChunkCoordinate,
-        #[case] expected_max: ChunkCoordinate,
+        #[case] chunk_coord: ChunkIndex,
+        #[case] expected_min: ChunkIndex,
+        #[case] expected_max: ChunkIndex,
     ) {
-        let (actual_min, actual_max) = renderable_chunk_indices_range(chunk_coord, RENDER_DISTANCE_CHUNKS);
+        let (actual_min, actual_max) =
+            renderable_chunk_indices_range(chunk_coord, RENDER_DISTANCE_CHUNKS);
         assert_eq!(expected_min, actual_min);
         assert_eq!(expected_max, actual_max);
     }

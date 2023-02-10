@@ -2,14 +2,11 @@ syntax = "proto3";
 package sbs5k_messages.block;
 
 enum BlockType {
-  EMPTY = 0;
-  GRASS = 1;
-  DIRT = 2;
-  STONE = 3;
+    EMPTY = 0;
+    GRASS = 1;
+    DIRT = 2;
+    STONE = 3;
 
-  reserved "WATER";
-  reserved 4;
-
-  reserved "TORCH";
-  reserved 5 to 9;
+    // TODO: Water
+    // TODO: Torch (might need separate ones according to which wall (north/south/east/west) they're attached)
 }

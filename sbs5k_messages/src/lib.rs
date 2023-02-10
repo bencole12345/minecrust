@@ -17,8 +17,8 @@ pub mod chunk {
 }
 
 /// Types for events that can happen in the game
-pub mod events {
-    tonic::include_proto!("sbs5k_messages.events");
+pub mod event {
+    tonic::include_proto!("sbs5k_messages.event");
 }
 
 /// Types for entities in the game world

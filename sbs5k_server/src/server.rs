@@ -1,13 +1,13 @@
 use tonic::{Request, Response, Status, Streaming};
 
-use sbs5k_messages::{backend, events};
+use sbs5k_messages::{backend, event};
 
 #[derive(Clone, Debug, Default)]
 pub struct SBS5kServerImpl;
 
 #[tonic::async_trait]
 impl backend::Sbs5kBackend for SBS5kServerImpl {
-    type StreamEventsStream = Streaming<events::Event>;
+    type StreamEventsStream = Streaming<event ::Event>;
 
     async fn get_initial_state(
         &self,

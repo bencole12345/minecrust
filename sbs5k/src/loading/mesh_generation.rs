@@ -3,7 +3,7 @@ use std::rc::Rc;
 use nalgebra::{Point3, Vector3};
 
 use sbs5k_core::block::{Block, NON_EMPTY_BLOCKS_COUNT};
-use sbs5k_core::chunk::{Chunk, ChunkCoordinate, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
+use sbs5k_core::chunk::{Chunk, ChunkIndex, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
 use sbs5k_core::cube::CubeFace;
 use sbs5k_engine::model::{Model, VertexData, VertexDataLayoutInfo};
 use sbs5k_engine::texture::{ImageFileFormat, Texture, TextureCoordinate};
@@ -46,7 +46,7 @@ impl MeshGenerator {
     pub(crate) fn chunk_to_scene_object(
         &self,
         chunk: &Chunk,
-        coordinate: ChunkCoordinate,
+        coordinate: ChunkIndex,
     ) -> SceneObject {
         let mut vertex_buffer: Vec<f32> = vec![];
         let mut index_buffer: Vec<u32> = vec![];

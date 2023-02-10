@@ -1,5 +1,5 @@
 syntax = "proto3";
-package sbs5k_messages.events;
+package sbs5k_messages.event;
 
 import "world.proto";
 
@@ -11,6 +11,7 @@ message Event {
         PlayerConnect playerConnect = 1;
         PlayerDisconnect playerDisconnect = 2;
         PlayerMove playerMove = 3;
+        
         // TODO: Block change
     }
   }
@@ -19,7 +20,8 @@ message Event {
  * A player connected to the server
  */
 message PlayerConnect {
-    world.PlayerPosition initialPosition = 1;
+    int32 playerId = 1;
+    world.Position initialPosition = 2;
 }
 
 /*
@@ -33,5 +35,6 @@ message PlayerDisconnect {
  * A player moved
  */
 message PlayerMove {
-    world.PlayerPosition newPosition = 1;
+    world.Position newPosition = 1;
+    world.Orientation newOrientation = 2;
 }
