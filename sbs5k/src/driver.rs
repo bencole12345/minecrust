@@ -49,7 +49,8 @@ impl Driver {
         let mut controls = controls::ControlsHandler::new();
 
         // Set up the asynchronous chunk loading system
-        let mut chunk_loader = loading::ChunkLoader::new(chunk_source, self.config, self.state.is_live.clone());
+        let mut chunk_loader =
+            loading::ChunkLoader::new(chunk_source, self.config, self.state.is_live.clone());
         let (chunk_load_request_tx, chunk_load_request_rx) = mpsc::channel();
         let (chunk_load_result_tx, chunk_load_result_rx) = mpsc::channel();
         let chunk_loader_thread_handle = thread::spawn(move || {

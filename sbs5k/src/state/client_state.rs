@@ -5,12 +5,11 @@ use nalgebra::Point3;
 
 use sbs5k_core::entity::EntityPosition;
 
-use crate::Args;
 use crate::state::chunks_state::ChunksState;
+use crate::Args;
 
 /// The client's view of the world's state
 pub(crate) struct ClientState {
-
     /// The player's current position in the world
     pub player_position: EntityPosition,
 

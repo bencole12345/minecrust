@@ -18,6 +18,8 @@ pub(crate) mod shaders {
     pub(crate) static SCENE_OBJECTS_FRAG_SHADER: ShaderSrc =
         shader!("scene_objects.frag", ShaderType::FragmentShader);
 
-    pub(crate) static SKYBOX_VERT_SHADER: ShaderSrc = shader!("skybox.vert", ShaderType::VertexShader);
-    pub(crate) static SKYBOX_FRAG_SHADER: ShaderSrc = shader!("skybox.frag", ShaderType::FragmentShader);
+    pub(crate) static SKYBOX_VERT_SHADER: ShaderSrc =
+        shader!("skybox.vert", ShaderType::VertexShader);
+    pub(crate) static SKYBOX_FRAG_SHADER: ShaderSrc =
+        shader!("skybox.frag", ShaderType::FragmentShader);
 }

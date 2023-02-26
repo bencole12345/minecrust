@@ -128,7 +128,7 @@ impl ChunkLoader {
         let coordinates_to_load = compute_chunks_to_load_after_player_current_chunk_change(
             self.current_chunk_coordinate,
             new_coordinate,
-            self.config.render_distance
+            self.config.render_distance,
         );
 
         self.current_chunk_coordinate = new_coordinate;
@@ -168,7 +168,8 @@ fn compute_chunks_to_load_after_player_current_chunk_change(
 
 /// Compute the range of chunks that should be renderable for a given player index
 fn renderable_chunk_indices_range(
-    current_chunk_coord: ChunkCoordinate, render_distance: u32
+    current_chunk_coord: ChunkCoordinate,
+    render_distance: u32,
 ) -> (ChunkCoordinate, ChunkCoordinate) {
     let min_i = current_chunk_coord.i - render_distance as i32;
     let min_j = current_chunk_coord.j - render_distance as i32;
@@ -207,7 +208,8 @@ mod tests {
         #[case] expected_min: ChunkCoordinate,
         #[case] expected_max: ChunkCoordinate,
     ) {
-        let (actual_min, actual_max) = renderable_chunk_indices_range(chunk_coord, RENDER_DISTANCE_CHUNKS);
+        let (actual_min, actual_max) =
+            renderable_chunk_indices_range(chunk_coord, RENDER_DISTANCE_CHUNKS);
         assert_eq!(expected_min, actual_min);
         assert_eq!(expected_max, actual_max);
     }

@@ -12,7 +12,8 @@ pub(crate) struct ChunksState {
 impl ChunksState {
     pub(crate) fn new(render_distance: u32) -> Self {
         let renderable_chunks_square_edge_size = 1 + 2 * render_distance;
-        let num_renderable_chunks = renderable_chunks_square_edge_size * renderable_chunks_square_edge_size;
+        let num_renderable_chunks =
+            renderable_chunks_square_edge_size * renderable_chunks_square_edge_size;
 
         let mut chunks = vec![];
         chunks.resize_with(num_renderable_chunks as usize, || None);
@@ -68,7 +69,11 @@ mod tests {
 
     #[rstest]
     #[case(ChunkCoordinate{i: 0, j: 0}, 1, 0)]
-    fn default_chunk_position_works(#[case] chunk_coord: ChunkCoordinate, #[case] edge_length: u32, #[case] expected: usize) {
+    fn default_chunk_position_works(
+        #[case] chunk_coord: ChunkCoordinate,
+        #[case] edge_length: u32,
+        #[case] expected: usize,
+    ) {
         let actual = get_chunk_index(chunk_coord, edge_length);
         assert_eq!(expected, actual);
     }
