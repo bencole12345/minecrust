@@ -9,7 +9,6 @@ authors = ["Ben Cole <bencole12345@gmail.com>"]
 clap = { version = "3.1.18", features = ["derive"] }
 glm = "0.2.3"
 nalgebra = "0.29.0"
-packer = "0.5.3"
 
 sbs5k_core = { path = "../sbs5k_core" }
 sbs5k_engine = { path = "../sbs5k_engine" }

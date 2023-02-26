@@ -8,14 +8,14 @@ use gl::types::*;
 use crate::binding::Bindable;
 use crate::uniforms::Uniform;
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum ShaderType {
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub(crate) enum ShaderType {
     VertexShader,
     FragmentShader,
 }
 
 /// Wraps a single shader, such as a vertex shader or a fragment shader.
-pub struct Shader {
+pub(crate) struct Shader {
     id: GLuint,
     shader_type: ShaderType,
     debug_name: &'static str,
@@ -23,14 +23,20 @@ pub struct Shader {
 
 /// Wraps a linked shader program, consisting of both a vertex shader and a
 /// fragment shader.
-pub struct ShaderProgram {
+pub(crate) struct ShaderProgram {
     id: GLuint,
 }
 
+pub(crate) struct ShaderSrc {
+    pub src: &'static [u8],
+    pub debug_name: &'static str,
+    pub shader_type: ShaderType,
+}
+
 impl Shader {
-    pub fn new(code: &[u8], shader_type: ShaderType, debug_name: &'static str) -> Self {
-        let code = ffi::CString::new(code).unwrap();
-        let gl_shader_type = match &shader_type {
+    pub fn new(src: &ShaderSrc) -> Self {
+        let code = ffi::CString::new(src.src).unwrap();
+        let gl_shader_type = match src.shader_type {
             ShaderType::VertexShader => gl::VERTEX_SHADER,
             ShaderType::FragmentShader => gl::FRAGMENT_SHADER,
         };
@@ -42,14 +48,14 @@ impl Shader {
         };
 
         if !compiled_successfully(id) {
-            dump_shader_compile_error(id, debug_name);
+            dump_shader_compile_error(id, src.debug_name);
             panic!("Failed to compile shader");
         }
 
         Shader {
             id,
-            shader_type,
-            debug_name,
+            shader_type: src.shader_type,
+            debug_name: src.debug_name,
         }
     }
 }

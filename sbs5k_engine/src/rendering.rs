@@ -10,7 +10,7 @@ use crate::fog::FogParameters;
 use crate::lighting::{GlobalLight, PointLight, SceneLighting};
 use crate::resources;
 use crate::scene::SceneObject;
-use crate::shaders::{Shader, ShaderProgram, ShaderType};
+use crate::shaders::{Shader, ShaderProgram};
 use crate::skybox::Skybox;
 use crate::texture::TextureBinding;
 use crate::uniforms::Uniform;
@@ -62,37 +62,13 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new() -> Renderer {
-        let (scene_objects_vertex_shader_bytes, debug_name) =
-            resources::scene_objects_vertex_shader();
-        let scene_objects_vertex_shader = Shader::new(
-            scene_objects_vertex_shader_bytes,
-            ShaderType::VertexShader,
-            debug_name,
-        );
-        let (scene_objects_fragment_shader_bytes, debug_name) =
-            resources::scene_objects_fragment_shader();
-        let scene_objects_fragment_shader = Shader::new(
-            scene_objects_fragment_shader_bytes,
-            ShaderType::FragmentShader,
-            debug_name,
-        );
-        let cubes_shader_program =
-            ShaderProgram::new(scene_objects_vertex_shader, scene_objects_fragment_shader);
+        let scene_objs_vert = Shader::new(&resources::shaders::SCENE_OBJECTS_VERT_SHADERS);
+        let scene_objects_frag = Shader::new(&resources::shaders::SCENE_OBJECTS_FRAG_SHADER);
+        let cubes_shader_program = ShaderProgram::new(scene_objs_vert, scene_objects_frag);
 
-        let (skybox_vertex_shader_bytes, debug_name) = resources::skybox_vertex_shader();
-        let skybox_vertex_shader = Shader::new(
-            skybox_vertex_shader_bytes,
-            ShaderType::VertexShader,
-            debug_name,
-        );
-        let (skybox_fragment_shader_bytes, debug_name) = resources::skybox_fragment_shader();
-        let skybox_fragment_shader = Shader::new(
-            skybox_fragment_shader_bytes,
-            ShaderType::FragmentShader,
-            debug_name,
-        );
-        let skybox_shader_program =
-            ShaderProgram::new(skybox_vertex_shader, skybox_fragment_shader);
+        let skybox_vert = Shader::new(&resources::shaders::SKYBOX_VERT_SHADER);
+        let skybox_frag = Shader::new(&resources::shaders::SKYBOX_FRAG_SHADER);
+        let skybox_shader_program = ShaderProgram::new(skybox_vert, skybox_frag);
 
         // Initial setup of the OpenGL environment
         unsafe {

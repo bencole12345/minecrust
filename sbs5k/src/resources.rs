@@ -1,9 +1,3 @@
-use packer::Packer;
-
-#[derive(Packer)]
-#[packer(source = "textures", prefixed = false)]
-struct Textures;
-
-pub fn cubes_texture() -> &'static [u8] {
-    Textures::get("cubes.png").unwrap()
+pub(crate) mod textures {
+    pub const CUBES: &[u8] = include_bytes!("../../textures/cubes.png");
 }

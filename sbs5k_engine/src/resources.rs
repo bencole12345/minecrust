@@ -1,30 +1,23 @@
-use packer::Packer;
+use crate::shaders::{ShaderSrc, ShaderType};
 
-#[derive(Packer)]
-#[packer(source = "shaders", prefixed = false)]
-struct Shaders;
-
-#[inline]
-fn get_resource(name: &'static str) -> &'static [u8] {
-    Shaders::get(name).unwrap()
+macro_rules! shader {
+    ($name: expr, $shader_type: expr) => {{
+        ShaderSrc {
+            src: include_bytes!(concat!("../../shaders/", $name)),
+            debug_name: $name,
+            shader_type: $shader_type,
+        }
+    }};
 }
 
-pub fn scene_objects_vertex_shader() -> (&'static [u8], &'static str) {
-    let name = "scene_objects.vert";
-    (get_resource(name), name)
-}
+pub(crate) mod shaders {
+    use super::*;
 
-pub fn scene_objects_fragment_shader() -> (&'static [u8], &'static str) {
-    let name = "scene_objects.frag";
-    (get_resource(name), name)
-}
+    pub(crate) static SCENE_OBJECTS_VERT_SHADERS: ShaderSrc =
+        shader!("scene_objects.vert", ShaderType::VertexShader);
+    pub(crate) static SCENE_OBJECTS_FRAG_SHADER: ShaderSrc =
+        shader!("scene_objects.frag", ShaderType::FragmentShader);
 
-pub fn skybox_vertex_shader() -> (&'static [u8], &'static str) {
-    let name = "skybox.vert";
-    (get_resource(name), name)
-}
-
-pub fn skybox_fragment_shader() -> (&'static [u8], &'static str) {
-    let name = "skybox.frag";
-    (get_resource(name), name)
+    pub(crate) static SKYBOX_VERT_SHADER: ShaderSrc = shader!("skybox.vert", ShaderType::VertexShader);
+    pub(crate) static SKYBOX_FRAG_SHADER: ShaderSrc = shader!("skybox.frag", ShaderType::FragmentShader);
 }

@@ -26,7 +26,7 @@ impl MeshGenerator {
     pub(crate) fn new() -> Self {
         MeshGenerator {
             blocks_texture: Rc::new(Texture::new(
-                resources::cubes_texture(),
+                resources::textures::CUBES,
                 ImageFileFormat::Png,
             )),
         }
