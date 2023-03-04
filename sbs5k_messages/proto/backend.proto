@@ -1,7 +1,8 @@
 syntax = "proto3";
 package sbs5k_messages.backend;
 
-import "events.proto";
+import "chunk.proto";
+import "event.proto";
 import "world.proto";
 
 /*
@@ -28,7 +29,7 @@ service SBS5kBackend {
      * and how they'll learn of other users' events. The streams are expected to remain
      * alive for the duration of the player being connected to the server
      */
-    rpc StreamEvents (stream events.Event) returns (stream events.Event);
+    rpc StreamEvents (stream event.Event) returns (stream event.Event);
 }
 
 message GetInitialStateRequest {
@@ -41,9 +42,9 @@ message GetInitialStateResponse {
 }
 
 message GetChunksRequest {
-    world.ChunkIndex chunkIndex = 1;
+    repeated world.ChunkIndex chunkIndices = 1;
 }
 
 message GetChunksResponse {
-    // TODO: Encode the chunk in here
+    repeated chunk.Chunk chcunks = 1;
 }

@@ -49,15 +49,15 @@ impl Driver {
         let mut controls = controls::ControlsHandler::new();
 
         // Set up the asynchronous chunk loading system
-        let mut chunk_loader = loading::ChunkLoader::new(chunk_source, self.config, self.state.is_live.clone());
+        let mut chunk_loader =
+            loading::ChunkLoader::new(chunk_source, self.config, self.state.is_live.clone());
         let (chunk_load_request_tx, chunk_load_request_rx) = mpsc::channel();
         let (chunk_load_result_tx, chunk_load_result_rx) = mpsc::channel();
         let chunk_loader_thread_handle = thread::spawn(move || {
             chunk_loader.generate_chunks_until_stop(chunk_load_request_rx, chunk_load_result_tx);
         });
 
-        let mut prev_player_chunk =
-            chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
+        let mut prev_player_chunk = chunk::ChunkIndex::from(self.state.player_position.position);
 
         chunk_load_request_tx
             .send(ChunkLoadRequest::InitialLoad(prev_player_chunk))
@@ -77,15 +77,14 @@ impl Driver {
                     .chunks_state
                     .set_chunk(loaded_chunk.coordinate, Some(*loaded_chunk.chunk));
                 self.state
-                    .chunks_state
                     .set_chunk_mesh(loaded_chunk.coordinate, Some(mesh));
             }
 
             // Compute updated camera position
             let camera_pos = engine::CameraPosition {
                 position: self.state.player_position.position,
-                yaw: self.state.player_position.yaw,
-                pitch: self.state.player_position.pitch,
+                yaw: self.state.player_position.orientation.yaw,
+                pitch: self.state.player_position.orientation.pitch,
             };
 
             // Render scene to window
@@ -113,8 +112,7 @@ impl Driver {
             controls.consume_events(&mut self.window);
             controls.move_player(&mut self.state.player_position, time_tracker.dt());
 
-            let current_player_chunk =
-                chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
+            let current_player_chunk = chunk::ChunkIndex::from(self.state.player_position.position);
             if current_player_chunk != prev_player_chunk {
                 chunk_load_request_tx
                     .send(ChunkLoadRequest::ChunkChangeLoad(current_player_chunk))

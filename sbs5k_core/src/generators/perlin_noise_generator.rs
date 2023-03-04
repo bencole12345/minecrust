@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 
 use crate::block::Block;
 use crate::chunk::{
-    empty_blocks, Chunk, ChunkCoordinate, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH,
+    empty_blocks, Chunk, ChunkIndex, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH,
 };
 use crate::maths::{interpolate, modulo_fp};
 
@@ -115,7 +115,7 @@ impl PerlinNoiseGenerator {
 }
 
 impl ChunkSource for PerlinNoiseGenerator {
-    fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk> {
+    fn get_chunk_at(&mut self, coordinate: ChunkIndex) -> Box<Chunk> {
         let mut blocks = empty_blocks();
 
         #[allow(clippy::needless_range_loop)]

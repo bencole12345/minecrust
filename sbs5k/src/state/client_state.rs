@@ -3,14 +3,13 @@ use std::sync::{Arc, RwLock};
 
 use nalgebra::Point3;
 
-use sbs5k_core::entity::EntityPosition;
+use sbs5k_core::world::{EntityPosition, Orientation};
 
-use crate::Args;
 use crate::state::chunks_state::ChunksState;
+use crate::Args;
 
 /// The client's view of the world's state
 pub(crate) struct ClientState {
-
     /// The player's current position in the world
     pub player_position: EntityPosition,
 
@@ -26,9 +25,11 @@ impl ClientState {
     pub(crate) fn new(config: &Args) -> Self {
         let player_position = EntityPosition {
             position: Point3::new(8.0, 66.0, 8.0),
-            yaw: PI,
-            pitch: 0.0,
-            roll: 0.0,
+            orientation: Orientation {
+                pitch: 0.0,
+                yaw: PI,
+                roll: 0.0,
+            },
         };
 
         let chunks_state = ChunksState::new(config.render_distance);
