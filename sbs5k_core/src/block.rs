@@ -7,19 +7,14 @@
 pub const NON_EMPTY_BLOCKS_COUNT: u32 = 3;
 
 /// Encodes all possible block types in the game world.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Block {
+    #[default]
     Empty,
     Grass,
     Dirt,
     Stone,
     // TODO: Water
     // TODO: Torch
-}
-
-impl Default for Block {
-    fn default() -> Self {
-        Block::Empty
-    }
 }
