@@ -1,11 +1,8 @@
-use nalgebra::Point3;
+extern crate nalgebra as na;
+use serde::{Deserialize, Serialize};
 
-/// The position of an entity in the world
-#[derive(Debug)]
-pub struct EntityPosition {
-    /// The entity's position in world space
-    pub position: Point3<f32>,
-
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Orientation {
     /// The elevation of the entity above the XZ plane, in radians
     pub pitch: f32,
 
@@ -14,4 +11,14 @@ pub struct EntityPosition {
 
     /// The rotation of the entity clockwise around a line through the XZ axis
     pub roll: f32,
+}
+
+/// The position of an entity in the world
+#[derive(Debug, Deserialize, Serialize)]
+pub struct EntityPosition {
+    /// The entity's position in world space
+    pub location: na::Point3<f32>,
+
+    /// The entity's orientation in the world
+    pub orientation: Orientation,
 }

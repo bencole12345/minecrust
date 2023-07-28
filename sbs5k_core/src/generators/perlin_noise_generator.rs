@@ -2,9 +2,7 @@ use std::collections::BTreeMap;
 use std::f32::consts::PI;
 
 use crate::block::Block;
-use crate::chunk::{
-    empty_blocks, Chunk, ChunkCoordinate, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH,
-};
+use crate::chunk::{Chunk, ChunkCoordinate, ChunkSource, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
 use crate::maths::{interpolate, modulo_fp};
 
 use glm::{cos, floor, sin};
@@ -116,7 +114,7 @@ impl PerlinNoiseGenerator {
 
 impl ChunkSource for PerlinNoiseGenerator {
     fn get_chunk_at(&mut self, coordinate: ChunkCoordinate) -> Box<Chunk> {
-        let mut blocks = empty_blocks();
+        let mut chunk: Box<Chunk> = Default::default();
 
         #[allow(clippy::needless_range_loop)]
         for x in 0..CHUNK_WIDTH {
@@ -131,7 +129,7 @@ impl ChunkSource for PerlinNoiseGenerator {
                     let grass_start = glm::max(empty_start - 1, 0);
                     let dirt_start = glm::max(grass_start - 3, 0);
 
-                    blocks[x][y][z] = if y >= empty_start as usize {
+                    let block_type = if y >= empty_start as usize {
                         Block::Empty
                     } else if y >= grass_start as usize {
                         Block::Grass
@@ -140,11 +138,12 @@ impl ChunkSource for PerlinNoiseGenerator {
                     } else {
                         Block::Stone
                     };
+                    chunk.set_block_at(x, y, z, block_type);
                 }
             }
         }
 
-        Box::new(Chunk::new(blocks))
+        chunk
     }
 }
 

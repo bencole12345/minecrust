@@ -1,4 +1,7 @@
 use nalgebra::Point3;
+use serde;
+use serde::{Deserialize, Serialize};
+use serde_big_array::BigArray;
 
 use crate::block::Block;
 
@@ -6,12 +9,27 @@ pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_DEPTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 256;
 
+pub const BLOCKS_IN_CHUNK: usize = CHUNK_WIDTH * CHUNK_DEPTH * CHUNK_HEIGHT;
+
+/// The blocks that comprise one chunk.
+///
+/// Blocks should be stored in X-major, followed by Y-major, order.
+pub type ChunkBlocks = [Block; BLOCKS_IN_CHUNK];
+
 /// A 16x16x256 volume of space
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Chunk {
     /// The blocks contained in this chunk
+    #[serde(with = "BigArray")]
     blocks: ChunkBlocks,
-    // TODO: Compute lighting levels (don't serialise)
+}
+
+impl Default for Chunk {
+    fn default() -> Self {
+        Self {
+            blocks: empty_blocks(),
+        }
+    }
 }
 
 /// The unique 2D integral coordinate of a chunk
@@ -19,7 +37,7 @@ pub struct Chunk {
 /// The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate
 /// corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
 /// first spawns in.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct ChunkCoordinate {
     pub i: i32,
     pub j: i32,
@@ -50,10 +68,13 @@ impl ChunkCoordinate {
     }
 }
 
-pub type ChunkBlocks = [[[Block; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_WIDTH];
-
 pub fn empty_blocks() -> ChunkBlocks {
-    [[[Block::Empty; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_WIDTH]
+    [Block::Empty; BLOCKS_IN_CHUNK]
+}
+
+#[inline(always)]
+fn block_index(x: usize, y: usize, z: usize) -> usize {
+    (CHUNK_HEIGHT * CHUNK_DEPTH) * x + (CHUNK_WIDTH) * y + z
 }
 
 impl Chunk {
@@ -62,14 +83,16 @@ impl Chunk {
     }
 
     #[allow(dead_code)]
-    #[inline]
+    #[inline(always)]
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
-        self.blocks[x][y][z] = block;
+        let idx = block_index(x, y, z);
+        self.blocks[idx] = block;
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn get_block_at(&self, x: usize, y: usize, z: usize) -> Block {
-        self.blocks[x][y][z]
+        let idx = block_index(x, y, z);
+        self.blocks[idx]
     }
 
     #[inline]
@@ -90,6 +113,22 @@ mod tests {
     use super::*;
     use nalgebra::Point3;
     use rstest::*;
+
+    #[rstest]
+    #[case(0, 0, 0, 0)]
+    #[case(1, 0, 0, CHUNK_HEIGHT*CHUNK_DEPTH)]
+    #[case(0, 1, 0, CHUNK_DEPTH)]
+    #[case(0, 0, 1, 1)]
+    #[case(1, 2, 3, 1*CHUNK_HEIGHT*CHUNK_DEPTH + 2*CHUNK_DEPTH + 3)]
+    fn block_index_works(
+        #[case] x: usize,
+        #[case] y: usize,
+        #[case] z: usize,
+        #[case] expected_idx: usize,
+    ) {
+        let idx = block_index(x, y, z);
+        assert_eq!(expected_idx, idx);
+    }
 
     #[rstest]
     #[case(Point3::new(1.0, 0.0, 1.0), ChunkCoordinate{i: 0, j: 0})]

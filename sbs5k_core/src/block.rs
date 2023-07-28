@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 /// The number of non-empty blocks included in the `Block` enum.
 ///
 /// This is used by the rendering process for dividing the block textures file into segments. If
@@ -7,14 +9,14 @@
 pub const NON_EMPTY_BLOCKS_COUNT: u32 = 3;
 
 /// Encodes all possible block types in the game world.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[repr(u8)]
 pub enum Block {
     #[default]
-    Empty,
-    Grass,
-    Dirt,
-    Stone,
+    Empty = 0,
+    Grass = 1,
+    Dirt = 2,
+    Stone = 3,
     // TODO: Water
     // TODO: Torch
 }

@@ -37,54 +37,54 @@ pub trait Rotatable {
 
 impl Translatable for entity::EntityPosition {
     fn translate_forwards(&mut self, distance: f32) {
-        let x = -sin(self.yaw);
+        let x = -sin(self.orientation.yaw);
         let y = 0.0;
-        let z = cos(self.yaw);
+        let z = cos(self.orientation.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position += direction * distance;
+        self.location += direction * distance;
     }
 
     fn translate_backwards(&mut self, distance: f32) {
-        let x = sin(self.yaw);
+        let x = sin(self.orientation.yaw);
         let y = 0.0;
-        let z = -cos(self.yaw);
+        let z = -cos(self.orientation.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position += direction * distance;
+        self.location += direction * distance;
     }
 
     fn translate_left(&mut self, distance: f32) {
-        let x = cos(self.yaw);
+        let x = cos(self.orientation.yaw);
         let y: f32 = 0.0;
-        let z = sin(self.yaw);
+        let z = sin(self.orientation.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position += direction * distance;
+        self.location += direction * distance;
     }
 
     fn translate_right(&mut self, distance: f32) {
-        let x = -cos(self.yaw);
+        let x = -cos(self.orientation.yaw);
         let y = 0.0;
-        let z = -sin(self.yaw);
+        let z = -sin(self.orientation.yaw);
         let direction = Vector3::new(x, y, z);
-        self.position += direction * distance;
+        self.location += direction * distance;
     }
 
     fn translate_up(&mut self, distance: f32) {
         let direction = Vector3::new(0.0, 1.0, 0.0);
-        self.position += direction * distance;
+        self.location += direction * distance;
     }
 
     fn translate_down(&mut self, distance: f32) {
         let direction = Vector3::new(0.0, -1.0, 0.0);
-        self.position += direction * distance;
+        self.location += direction * distance;
     }
 }
 
 impl Rotatable for entity::EntityPosition {
     fn adjust_pitch(&mut self, angle: f32) {
-        self.pitch = glm::clamp(self.pitch + angle, -PI * 0.49, PI * 0.49);
+        self.orientation.pitch = glm::clamp(self.orientation.pitch + angle, -PI * 0.49, PI * 0.49);
     }
 
     fn adjust_yaw(&mut self, angle: f32) {
-        self.yaw = fmod(self.yaw + angle, 2.0 * PI);
+        self.orientation.yaw = fmod(self.orientation.yaw + angle, 2.0 * PI);
     }
 }

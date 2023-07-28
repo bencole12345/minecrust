@@ -58,7 +58,7 @@ impl Driver {
         });
 
         let mut prev_player_chunk =
-            chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
+            chunk::ChunkCoordinate::from_player_position(self.state.player_position.location);
 
         chunk_load_request_tx
             .send(ChunkLoadRequest::InitialLoad(prev_player_chunk))
@@ -84,9 +84,9 @@ impl Driver {
 
             // Compute updated camera position
             let camera_pos = engine::CameraPosition {
-                position: self.state.player_position.position,
-                yaw: self.state.player_position.yaw,
-                pitch: self.state.player_position.pitch,
+                position: self.state.player_position.location,
+                yaw: self.state.player_position.orientation.yaw,
+                pitch: self.state.player_position.orientation.pitch,
             };
 
             // Render scene to window
@@ -115,7 +115,7 @@ impl Driver {
             controls.move_player(&mut self.state.player_position, time_tracker.dt());
 
             let current_player_chunk =
-                chunk::ChunkCoordinate::from_player_position(self.state.player_position.position);
+                chunk::ChunkCoordinate::from_player_position(self.state.player_position.location);
             if current_player_chunk != prev_player_chunk {
                 chunk_load_request_tx
                     .send(ChunkLoadRequest::ChunkChangeLoad(current_player_chunk))
