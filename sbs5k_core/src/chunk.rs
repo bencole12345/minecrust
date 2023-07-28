@@ -32,6 +32,8 @@ impl Default for Chunk {
     }
 }
 
+// TODO: Rename ChunkCoordinate to ChunkIndex
+
 /// The unique 2D integral coordinate of a chunk
 ///
 /// The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate

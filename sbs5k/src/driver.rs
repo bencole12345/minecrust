@@ -24,11 +24,15 @@ pub(crate) struct Driver {
     scene_lighting: engine::lighting::SceneLighting,
     fog_parameters: engine::FogParameters,
     mesh_generator: loading::MeshGenerator,
+    // backend: Box<dyn backend::BackendConnection>,
     state: Box<state::ClientState>,
 }
 
 impl Driver {
-    pub(crate) fn new(config: args::Args) -> Self {
+    pub(crate) fn new(
+        config: args::Args,
+        // backend_connection: Box<dyn backend::BackendConnection>,
+    ) -> Self {
         Driver {
             config,
             window: engine::Window::new(INITIAL_WIDTH, INITIAL_HEIGHT, TITLE),
@@ -37,6 +41,7 @@ impl Driver {
             scene_lighting: initialisation::make_scene_lighting(),
             fog_parameters: initialisation::make_fog_parameters(&config),
             mesh_generator: loading::MeshGenerator::new(),
+            // backend: backend_connection,
             state: Box::new(state::ClientState::new(&config)),
         }
     }
@@ -53,6 +58,7 @@ impl Driver {
             loading::ChunkLoader::new(chunk_source, self.config, self.state.is_live.clone());
         let (chunk_load_request_tx, chunk_load_request_rx) = mpsc::channel();
         let (chunk_load_result_tx, chunk_load_result_rx) = mpsc::channel();
+        // TODO: Move this into an owning object
         let chunk_loader_thread_handle = thread::spawn(move || {
             chunk_loader.generate_chunks_until_stop(chunk_load_request_rx, chunk_load_result_tx);
         });
