@@ -1,7 +1,7 @@
 use crate::inputs;
 
 /// An event from the runtime environment
-pub enum Event {
+pub enum WindowEvent {
     /// A key was pressed
     KeyPress(inputs::Key),
 
@@ -9,10 +9,10 @@ pub enum Event {
     KeyRelease(inputs::Key),
 
     /// The mouse was moved by (dx, dy) proportion of the screen's dimensions
-    MouseMove(f64, f64),
+    MouseMove(f32, f32),
 }
 
 /// A source of events to be processed
 pub trait EventSource {
-    fn poll_events(&mut self) -> Vec<Event>;
+    fn poll_events(&mut self) -> Vec<WindowEvent>;
 }

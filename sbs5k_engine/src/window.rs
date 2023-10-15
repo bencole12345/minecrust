@@ -1,6 +1,6 @@
 use glfw::{Action, Context};
 
-use crate::events::{Event, EventSource};
+use crate::events::{EventSource, WindowEvent};
 use crate::inputs::Key;
 use crate::rendering::DisplayTarget;
 
@@ -68,21 +68,21 @@ impl DisplayTarget for Window {
 }
 
 impl EventSource for Window {
-    fn poll_events(&mut self) -> Vec<Event> {
+    fn poll_events(&mut self) -> Vec<WindowEvent> {
         self.glfw_instance.poll_events();
 
         let mut last_mouse_pos = self.last_mouse;
 
-        let events: Vec<Event> = glfw::flush_messages(&self.glfw_events)
+        let events: Vec<WindowEvent> = glfw::flush_messages(&self.glfw_events)
             .filter_map(|(_, event)| match event {
                 glfw::WindowEvent::Key(glfw_key, _, Action::Press, _) => {
                     let key = Key::from_glfw_key(glfw_key);
-                    key.map(Event::KeyPress)
+                    key.map(WindowEvent::KeyPress)
                 }
 
                 glfw::WindowEvent::Key(glfw_key, _, Action::Release, _) => {
                     let key = Key::from_glfw_key(glfw_key);
-                    key.map(Event::KeyRelease)
+                    key.map(WindowEvent::KeyRelease)
                 }
 
                 glfw::WindowEvent::CursorPos(x, y) => {
@@ -90,7 +90,7 @@ impl EventSource for Window {
                         let dx = (x - prev_x) / (self.width as f64);
                         let dy = -1.0 * (y - prev_y) / (self.height as f64);
                         last_mouse_pos = Some((x, y));
-                        Some(Event::MouseMove(dx, dy))
+                        Some(WindowEvent::MouseMove(dx as f32, dy as f32))
                     } else {
                         last_mouse_pos = Some((x, y));
                         None
