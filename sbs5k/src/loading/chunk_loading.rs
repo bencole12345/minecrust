@@ -18,14 +18,14 @@ pub(crate) struct ChunkLoadResult {
 pub(crate) struct ChunkLoader {
     chunk_source: Box<dyn ChunkSource + Send>,
     current_chunk_coordinate: ChunkCoordinate,
-    config: Args,
+    config: Arc<Args>,
     is_live_flag: Arc<RwLock<bool>>,
 }
 
 impl ChunkLoader {
     pub(crate) fn new(
         chunk_source: Box<dyn ChunkSource + Send>,
-        config: Args,
+        config: Arc<Args>,
         is_live_flag: Arc<RwLock<bool>>,
     ) -> Self {
         Self {

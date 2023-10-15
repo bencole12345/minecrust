@@ -1,64 +1,14 @@
-use sbs5k_engine::events::{Event, EventSource};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use sbs5k_core::geometry;
+use sbs5k_engine::events as engine_events;
 use sbs5k_engine::inputs::Key;
 
 use crate::constants;
 use crate::controls::movement::{Rotatable, Translatable};
-
-/// The main handler for processing input events
-pub(crate) struct ControlsHandler {
-    close_pressed: bool,
-    player_translation_controller: WASDTranslationController,
-    player_rotation_controller: MouseRotationController,
-}
-
-impl ControlsHandler {
-    pub(crate) fn new() -> Self {
-        ControlsHandler {
-            close_pressed: false,
-            player_translation_controller: WASDTranslationController::new(),
-            player_rotation_controller: MouseRotationController::default(),
-        }
-    }
-
-    /// Consume all events from an `EventSource`, updating the client state accordingly
-    pub(crate) fn consume_events<T>(&mut self, source: &mut T)
-    where
-        T: EventSource,
-    {
-        for event in source.poll_events() {
-            match event {
-                Event::KeyPress(key) => self.on_key_press(key),
-                Event::KeyRelease(key) => self.on_key_release(key),
-                Event::MouseMove(dx, dy) => self.on_mouse_move(dx as f32, dy as f32),
-            }
-        }
-    }
-
-    pub(crate) fn close_has_been_pressed(&self) -> bool {
-        self.close_pressed
-    }
-
-    pub(crate) fn move_player(&mut self, player: &mut (impl Rotatable + Translatable), dt: f64) {
-        self.player_translation_controller.update(player, dt);
-        self.player_rotation_controller.update(player);
-    }
-
-    fn on_key_press(&mut self, key: Key) {
-        if key == Key::Escape {
-            self.close_pressed = true;
-        } else {
-            self.player_translation_controller.on_key_press(key);
-        }
-    }
-
-    fn on_key_release(&mut self, key: Key) {
-        self.player_translation_controller.on_key_release(key);
-    }
-
-    fn on_mouse_move(&mut self, dx: f32, dy: f32) {
-        self.player_rotation_controller.on_mouse_move(dx, dy);
-    }
-}
+use crate::event;
+use crate::event::Event;
 
 /// Encodes the current linear movement status of the controlled object
 #[derive(Clone, Copy, Default)]
@@ -71,128 +21,155 @@ struct MovementState {
     moving_down: bool,
 }
 
-/// A controller to translate the player around the world with a standard WASD control scheme
-struct WASDTranslationController {
+/// The main handler for processing input events
+pub(crate) struct ControlsHandler {
     movement_state: MovementState,
+    mouse_accumulated_dx: f32,
+    mouse_accumulated_dy: f32,
+    event_submitter: event::EventSubmitter,
 }
 
-impl WASDTranslationController {
-    pub fn new() -> Self {
-        WASDTranslationController {
+impl ControlsHandler {
+    pub(crate) fn new(event_submitter: event::EventSubmitter) -> Self {
+        ControlsHandler {
             movement_state: MovementState::default(),
+            mouse_accumulated_dx: 0.0,
+            mouse_accumulated_dy: 0.0,
+            event_submitter,
         }
     }
 
-    #[inline]
-    pub fn on_key_press(&mut self, key: Key) {
-        match key {
-            Key::W => {
-                self.movement_state.moving_forwards = true;
+    pub(crate) fn pump_window_events(
+        &mut self,
+        source: &mut impl engine_events::EventSource,
+        dt: f32,
+    ) {
+        for event in source.poll_events() {
+            match event {
+                engine_events::WindowEvent::KeyPress(key) => self.on_key_press(key),
+                engine_events::WindowEvent::KeyRelease(key) => self.on_key_release(key),
+                engine_events::WindowEvent::MouseMove(dx, dy) => self.on_mouse_move(dx, dy),
             }
-            Key::A => {
-                self.movement_state.moving_left = true;
-            }
-            Key::S => {
-                self.movement_state.moving_backwards = true;
-            }
-            Key::D => {
-                self.movement_state.moving_right = true;
-            }
-            Key::R | Key::LeftShift => {
-                self.movement_state.moving_up = true;
-            }
-            Key::F | Key::LeftCtrl => {
-                self.movement_state.moving_down = true;
-            }
+        }
 
+        self.emit_motion_event(dt);
+        self.emit_rotation_event();
+    }
+
+    fn on_key_press(&mut self, key: Key) {
+        match key {
+            Key::Escape => self.event_submitter.submit_event(Event::EndGame),
+            Key::W => self.movement_state.moving_forwards = true,
+            Key::A => self.movement_state.moving_left = true,
+            Key::S => self.movement_state.moving_backwards = true,
+            Key::D => self.movement_state.moving_right = true,
+            Key::R | Key::LeftShift => self.movement_state.moving_up = true,
+            Key::F | Key::LeftCtrl => self.movement_state.moving_down = true,
             _ => {}
         }
     }
 
-    #[inline]
-    pub fn on_key_release(&mut self, key: Key) {
+    fn on_key_release(&mut self, key: Key) {
         match key {
-            Key::W => {
-                self.movement_state.moving_forwards = false;
-            }
-            Key::A => {
-                self.movement_state.moving_left = false;
-            }
-            Key::S => {
-                self.movement_state.moving_backwards = false;
-            }
-            Key::D => {
-                self.movement_state.moving_right = false;
-            }
-            Key::R | Key::LeftShift => {
-                self.movement_state.moving_up = false;
-            }
-            Key::F | Key::LeftCtrl => {
-                self.movement_state.moving_down = false;
-            }
-
+            Key::W => self.movement_state.moving_forwards = false,
+            Key::A => self.movement_state.moving_left = false,
+            Key::S => self.movement_state.moving_backwards = false,
+            Key::D => self.movement_state.moving_right = false,
+            Key::R | Key::LeftShift => self.movement_state.moving_up = false,
+            Key::F | Key::LeftCtrl => self.movement_state.moving_down = false,
             _ => {}
         }
     }
 
-    /// Apply the current movement state to a `Translatable` target
-    fn update<T>(&self, target: &mut T, dt: f64)
-    where
-        T: Translatable,
-    {
-        let distance = constants::MOVE_SPEED * (dt as f32);
+    fn on_mouse_move(&mut self, dx: f32, dy: f32) {
+        self.mouse_accumulated_dx += dx;
+        self.mouse_accumulated_dy += dy;
+    }
+
+    fn emit_motion_event(&self, dt: f32) {
+        let distance = constants::MOVE_SPEED * dt;
+        let mut dx = 0.0;
+        let mut dy = 0.0;
+        let mut dz = 0.0;
 
         if self.movement_state.moving_forwards && !self.movement_state.moving_backwards {
-            target.translate_forwards(distance);
+            dx += distance;
         }
-
-        if self.movement_state.moving_left && !self.movement_state.moving_right {
-            target.translate_left(distance);
-        }
-
         if self.movement_state.moving_backwards && !self.movement_state.moving_forwards {
-            target.translate_backwards(distance);
+            dx -= distance;
         }
 
         if self.movement_state.moving_right && !self.movement_state.moving_left {
-            target.translate_right(distance);
+            dy += distance;
+        }
+        if self.movement_state.moving_left && !self.movement_state.moving_right {
+            dy -= distance;
         }
 
         if self.movement_state.moving_up && !self.movement_state.moving_down {
-            target.translate_up(distance);
+            dz += distance;
         }
-
         if self.movement_state.moving_down && !self.movement_state.moving_up {
-            target.translate_down(distance);
+            dz -= distance;
+        }
+
+        if (dx, dy, dz) != (0.0, 0.0, 0.0) {
+            self.event_submitter.submit_event(Event::TranslatePlayer(
+                geometry::LocationDelta::new(dx, dy, dz),
+            ));
         }
     }
-}
 
-/// A controller to rotate the player using standard mouse movement controls
-#[derive(Default)]
-struct MouseRotationController {
-    accumulated_dx: f32,
-    accumulated_dy: f32,
-}
+    fn emit_rotation_event(&mut self) {
+        let delta = geometry::OrientationDelta {
+            delta_pitch: self.mouse_accumulated_dy * constants::TURN_SENSITIVITY,
+            delta_yaw: self.mouse_accumulated_dx * constants::TURN_SENSITIVITY,
+        };
 
-impl MouseRotationController {
-    fn on_mouse_move(&mut self, dx: f32, dy: f32) {
-        self.accumulated_dx += dx;
-        self.accumulated_dy += dy;
+        if (delta.delta_pitch, delta.delta_yaw) != (0.0, 0.0) {
+            self.event_submitter
+                .submit_event(Event::RotatePlayer(delta));
+        }
+
+        self.mouse_accumulated_dx = 0.0;
+        self.mouse_accumulated_dy = 0.0;
     }
+}
 
-    /// Apply the current turn state to a `Rotatable` target
-    fn update<T>(&mut self, target: &mut T)
-    where
-        T: Rotatable,
-    {
-        let yaw_adjustment = self.accumulated_dx * constants::TURN_SENSITIVITY;
-        let pitch_adjustment = self.accumulated_dy * constants::TURN_SENSITIVITY;
+pub(crate) struct MovementApplier<T>
+where
+    T: Translatable + Rotatable,
+{
+    target: Rc<RefCell<T>>,
+}
 
-        target.adjust_yaw(yaw_adjustment);
-        target.adjust_pitch(pitch_adjustment);
+impl<T> MovementApplier<T>
+where
+    T: Translatable + Rotatable,
+{
+    pub(crate) fn new(target: Rc<RefCell<T>>) -> Self {
+        Self { target }
+    }
+}
 
-        self.accumulated_dx = 0.0;
-        self.accumulated_dy = 0.0;
+impl<T> event::EventListener for MovementApplier<T>
+where
+    T: Translatable + Rotatable,
+{
+    fn on_event(&mut self, event: &Event) {
+        match event {
+            Event::TranslatePlayer(v) => {
+                let mut target = self.target.borrow_mut();
+                target.translate_forwards(v[0]);
+                target.translate_right(v[1]);
+                target.translate_up(v[2]);
+            }
+            Event::RotatePlayer(d) => {
+                let mut target = self.target.borrow_mut();
+                target.adjust_yaw(d.delta_yaw);
+                target.adjust_pitch(d.delta_pitch);
+            }
+            _ => (),
+        }
     }
 }

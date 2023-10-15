@@ -1,9 +1,11 @@
+use std::cell::RefCell;
 use std::f32::consts::PI;
+use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
-extern crate nalgebra as na;
+use nalgebra as na;
 
-use sbs5k_core::entity;
+use sbs5k_core::geometry;
 
 use crate::state::chunks_state::ChunksState;
 use crate::Args;
@@ -11,7 +13,7 @@ use crate::Args;
 /// The client's view of the world's state
 pub(crate) struct ClientState {
     /// The player's current position in the world
-    pub player_position: entity::EntityPosition,
+    pub player_position: Rc<RefCell<geometry::EntityPosition>>,
 
     /// The state of the currently-loaded chunks
     pub chunks_state: ChunksState,
@@ -24,15 +26,15 @@ pub(crate) struct ClientState {
 impl ClientState {
     pub(crate) fn new(config: &Args) -> Self {
         let location = na::Point3::new(8.0, 66.0, 8.0);
-        let orientation = entity::Orientation {
+        let orientation = geometry::Orientation {
             yaw: PI,
             pitch: 0.0,
             roll: 0.0,
         };
-        let player_position = entity::EntityPosition {
+        let player_position = Rc::new(RefCell::new(geometry::EntityPosition {
             location,
             orientation,
-        };
+        }));
 
         let chunks_state = ChunksState::new(config.render_distance);
         let is_live = Arc::new(RwLock::new(true));
