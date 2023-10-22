@@ -22,7 +22,6 @@ const INITIAL_HEIGHT: u32 = 1080;
 pub(crate) struct Driver {
     running: Rc<Cell<bool>>,
     config: Arc<args::Args>,
-    window: engine::Window,
     controls: Rc<RefCell<controls::ControlsHandler>>,
     skybox: engine::Skybox,
     renderer: engine::Renderer,
@@ -32,6 +31,7 @@ pub(crate) struct Driver {
     event_submitter: event::EventSubmitter,
     state: Box<state::ClientState>,
     time_tracker: engine::TimeTracker,
+    window: engine::Window,
 }
 
 impl Driver {
@@ -52,7 +52,7 @@ impl Driver {
 
         let fog_parameters = initialisation::make_fog_parameters(&config);
 
-        let mut event_queue = event::EventQueue::new();
+        let mut event_queue = event::EventQueue::new(state.is_live.clone());
         let event_submitter = event_queue.get_submitter();
 
         let movement_applier = Rc::new(RefCell::new(controls::MovementApplier::new(
@@ -84,7 +84,6 @@ impl Driver {
         Driver {
             running: running_flag,
             config,
-            window,
             controls,
             skybox: engine::Skybox::new(),
             renderer: engine::Renderer::new(),
@@ -94,6 +93,7 @@ impl Driver {
             event_submitter,
             state,
             time_tracker: engine::TimeTracker::new(),
+            window,
         }
     }
 

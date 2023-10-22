@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, RwLock};
 
 use nalgebra as na;
 
@@ -23,11 +23,18 @@ pub(crate) enum Event {
 #[derive(Clone)]
 pub(crate) struct EventSubmitter {
     tx_handle: mpsc::Sender<Event>,
+    is_live: Arc<RwLock<bool>>,
 }
 
 impl EventSubmitter {
     pub fn submit_event(&self, event: Event) {
-        self.tx_handle.send(event).expect("Failed to add to queue");
+        let res = self.tx_handle.send(event);
+        if res.is_err() {
+            let live = *self.is_live.read().unwrap();
+            if live {
+                panic!("Failed to write event while game is live");
+            }
+        }
     }
 }
 
@@ -39,16 +46,18 @@ pub(crate) struct EventQueue {
     tx_handle: mpsc::Sender<Event>,
     rx_handle: mpsc::Receiver<Event>,
     listeners: Vec<Rc<RefCell<dyn EventListener>>>,
+    is_live: Arc<RwLock<bool>>,
 }
 
 impl EventQueue {
-    pub fn new() -> Self {
+    pub fn new(is_live: Arc<RwLock<bool>>) -> Self {
         let (tx_handle, rx_handle) = mpsc::channel();
         let listeners = Vec::new();
         Self {
             tx_handle,
             rx_handle,
             listeners,
+            is_live,
         }
     }
 
@@ -59,6 +68,7 @@ impl EventQueue {
     pub fn get_submitter(&self) -> EventSubmitter {
         EventSubmitter {
             tx_handle: Clone::clone(&self.tx_handle),
+            is_live: Clone::clone(&self.is_live),
         }
     }
 
