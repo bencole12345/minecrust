@@ -4,3 +4,4 @@ members = [
     "sbs5k_core",
     "sbs5k_engine",
 ]
+resolver = "2"

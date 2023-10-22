@@ -92,8 +92,8 @@ impl VertexData {
         index_buffer: &[u32],
         layout_info: VertexDataLayoutInfo,
     ) -> VertexData {
-        let vertex_buffer_size_bytes = vertex_data.len() * mem::size_of::<GLfloat>();
-        let index_buffer_size_bytes = index_buffer.len() * mem::size_of::<GLuint>();
+        let vertex_buffer_size_bytes = mem::size_of_val(vertex_data);
+        let index_buffer_size_bytes = mem::size_of_val(index_buffer);
 
         let vertices_count = index_buffer.len() as u32;
 
@@ -112,7 +112,7 @@ impl VertexData {
             gl::BufferData(
                 gl::ARRAY_BUFFER,
                 vertex_buffer_size_bytes as GLsizeiptr,
-                vertex_data.as_ptr() as *const f32 as *const os::raw::c_void,
+                vertex_data.as_ptr() as *const os::raw::c_void,
                 gl::STATIC_DRAW,
             );
 
