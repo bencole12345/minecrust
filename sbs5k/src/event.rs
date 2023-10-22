@@ -11,20 +11,16 @@ use crate::loading;
 pub(crate) enum Event {
     EndGame,
 
-    #[allow(dead_code)]
     ChunkLoaded(loading::ChunkLoadResult),
 
     TranslatePlayer(na::Vector3<f32>),
     RotatePlayer(geometry::OrientationDelta),
 
-    #[allow(dead_code)]
-    PlayerEnteredNewChunk {
-        new: chunk::ChunkCoordinate,
-        prev: chunk::ChunkCoordinate,
-    },
+    PlayerEnteredNewChunk(chunk::ChunkCoordinate),
     // TODO: MoveOtherPlayer, RotateOtherPlayer once we have multiplayer
 }
 
+#[derive(Clone)]
 pub(crate) struct EventSubmitter {
     tx_handle: mpsc::Sender<Event>,
 }

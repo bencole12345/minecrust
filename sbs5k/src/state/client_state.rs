@@ -16,7 +16,7 @@ pub(crate) struct ClientState {
     pub player_position: Rc<RefCell<geometry::EntityPosition>>,
 
     /// The state of the currently-loaded chunks
-    pub chunks_state: ChunksState,
+    pub chunks_state: Rc<RefCell<ChunksState>>,
 
     /// Whether the game is currently "live". This is expected to be `true` until we enter the
     /// shutdown phase. May be accessed by multiple threads.
@@ -36,7 +36,7 @@ impl ClientState {
             orientation,
         }));
 
-        let chunks_state = ChunksState::new(config.render_distance);
+        let chunks_state = Rc::new(RefCell::new(ChunksState::new(config.render_distance)));
         let is_live = Arc::new(RwLock::new(true));
 
         ClientState {
