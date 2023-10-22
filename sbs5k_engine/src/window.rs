@@ -11,7 +11,7 @@ pub struct Window {
     glfw_instance: glfw::Glfw,
     glfw_window: glfw::Window,
     glfw_events: std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>,
-    last_mouse: Option<(f64, f64)>,
+    last_mouse: (f64, f64),
 }
 
 impl Window {
@@ -52,7 +52,7 @@ impl Window {
             glfw_instance: glfw,
             glfw_window: window,
             glfw_events: events,
-            last_mouse: None,
+            last_mouse: (0.0, 0.0),
         }
     }
 
@@ -86,15 +86,11 @@ impl EventSource for Window {
                 }
 
                 glfw::WindowEvent::CursorPos(x, y) => {
-                    if let Some((prev_x, prev_y)) = self.last_mouse {
-                        let dx = (x - prev_x) / (self.width as f64);
-                        let dy = -1.0 * (y - prev_y) / (self.height as f64);
-                        last_mouse_pos = Some((x, y));
-                        Some(WindowEvent::MouseMove(dx as f32, dy as f32))
-                    } else {
-                        last_mouse_pos = Some((x, y));
-                        None
-                    }
+                    let (prev_x, prev_y) = self.last_mouse;
+                    let dx = (x - prev_x) / (self.width as f64);
+                    let dy = -1.0 * (y - prev_y) / (self.height as f64);
+                    last_mouse_pos = (x, y);
+                    Some(WindowEvent::MouseMove(dx as f32, dy as f32))
                 }
 
                 _ => None,
