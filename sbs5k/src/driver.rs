@@ -5,7 +5,6 @@ use std::sync::Arc;
 use sbs5k_core::{chunk, geometry};
 use sbs5k_engine as engine;
 
-use crate::args;
 use crate::controls;
 use crate::debug;
 use crate::event;
@@ -13,6 +12,7 @@ use crate::event::Event;
 use crate::initialisation;
 use crate::loading;
 use crate::state;
+use crate::{args, backend};
 
 const TITLE: &str = "Super Block Simulator 5000";
 const INITIAL_WIDTH: u32 = 1920;
@@ -80,6 +80,14 @@ impl Driver {
         let controls = Rc::new(RefCell::new(controls::ControlsHandler::new(
             event_queue.get_submitter(),
         )));
+
+        if let Some(addr) = config.server {
+            // TODO: Handle connection failure better
+            let backend_updater = Rc::new(RefCell::new(
+                backend::BackendConnection::new(addr).expect("Failed to create backend connection"),
+            ));
+            event_queue.add_listener(backend_updater);
+        }
 
         Driver {
             running: running_flag,

@@ -8,6 +8,7 @@ use image::ImageFormat;
 #[derive(Debug)]
 pub struct Texture {
     pub(crate) texture_id: GLuint,
+    // window:
 }
 
 /// A coordinate into a texture file
@@ -50,6 +51,8 @@ impl Texture {
         let width: i32 = img.width().try_into().unwrap();
         let height: i32 = img.height().try_into().unwrap();
 
+        // TODO: This is awkward because it implicitly depends on us having created the Window. I should refactor so
+        // that Texture takes some kind of Window reference to make this impossible.
         let texture_id = unsafe {
             let mut id: GLuint = 0;
             gl::GenTextures(1, &mut id);
