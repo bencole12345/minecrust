@@ -5,7 +5,6 @@ use std::sync::Arc;
 use sbs5k_core::{chunk, geometry};
 use sbs5k_engine as engine;
 
-use crate::args;
 use crate::controls;
 use crate::debug;
 use crate::event;
@@ -13,6 +12,8 @@ use crate::event::Event;
 use crate::initialisation;
 use crate::loading;
 use crate::state;
+use crate::updatable::Updatable;
+use crate::{args, backend};
 
 const TITLE: &str = "Super Block Simulator 5000";
 const INITIAL_WIDTH: u32 = 1920;
@@ -55,9 +56,6 @@ impl Driver {
         let mut event_queue = event::EventQueue::new(state.is_live.clone());
         let event_submitter = event_queue.get_submitter();
 
-        let movement_applier = Rc::new(RefCell::new(controls::MovementApplier::new(
-            state.player_position.clone(),
-        )));
         let stopper = Rc::new(RefCell::new(Stopper {
             flag: running_flag.clone(),
         }));
@@ -72,14 +70,23 @@ impl Driver {
             chunks_state: state.chunks_state.clone(),
         }));
 
-        event_queue.add_listener(movement_applier);
         event_queue.add_listener(stopper);
         event_queue.add_listener(chunk_loader);
         event_queue.add_listener(chunk_mesh_builder);
 
         let controls = Rc::new(RefCell::new(controls::ControlsHandler::new(
+            state.player_position.clone(),
             event_queue.get_submitter(),
         )));
+
+        // Set up connection to the backend server, if connection details were provided
+        if let Some(addr) = config.server {
+            // TODO: Handle connection failure better
+            let backend_updater = Rc::new(RefCell::new(
+                backend::BackendConnection::new(addr).expect("Failed to create backend connection"),
+            ));
+            event_queue.add_listener(backend_updater);
+        }
 
         Driver {
             running: running_flag,
@@ -100,6 +107,9 @@ impl Driver {
     /// Run the game to completion
     ///
     /// This method contains the game's main loop.
+    // TODO: Would be groovy if the engine could own the main loop and call into a user-provided
+    // function each frame. It could even own handling inputs and dispatching events, e.g. having
+    // the client provide an onInput callback
     pub(crate) fn run_game(&mut self) {
         // Set up an initial "previous" value. This value is used for working out the set of
         // chunks that need to be loaded whenever the player crosses a boundary
@@ -115,7 +125,13 @@ impl Driver {
         while self.running.get() && self.window.alive() {
             self.time_tracker.tick();
 
-            self.handle_inputs();
+            {
+                self.controls
+                    .borrow_mut()
+                    .pump_window_events(&mut self.window);
+            }
+
+            self.update_all_components();
 
             // Then perform the main event queue dispatch, which may include motion events triggered by the above
             self.event_queue.dispatch_all_events();
@@ -148,10 +164,11 @@ impl Driver {
         self.state.mark_dead();
     }
 
-    fn handle_inputs(&mut self) {
+    fn update_all_components(&mut self) {
+        // TODO: Make this a set of Updatables
         self.controls
             .borrow_mut()
-            .pump_window_events(&mut self.window, self.time_tracker.dt() as f32);
+            .update(self.time_tracker.dt() as f32);
     }
 
     fn render(

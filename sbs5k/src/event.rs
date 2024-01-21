@@ -2,8 +2,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{mpsc, Arc, RwLock};
 
-use nalgebra as na;
-
 use sbs5k_core::{chunk, geometry};
 
 use crate::loading;
@@ -13,9 +11,7 @@ pub(crate) enum Event {
 
     ChunkLoaded(loading::ChunkLoadResult),
 
-    TranslatePlayer(na::Vector3<f32>),
-    RotatePlayer(geometry::OrientationDelta),
-
+    PlayerChangedPosition(geometry::EntityPosition),
     PlayerEnteredNewChunk(chunk::ChunkCoordinate),
     // TODO: MoveOtherPlayer, RotateOtherPlayer once we have multiplayer
 }

@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::net;
 
 #[derive(Clone, Copy, Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -18,6 +19,10 @@ pub(crate) struct Args {
     #[clap(long)]
     /// Print the player's position to the console every frame
     pub debug_print_player_position: bool,
+
+    #[clap(long)]
+    /// The address of the server
+    pub server: Option<net::SocketAddr>,
 }
 
 impl Args {
