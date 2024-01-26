@@ -17,6 +17,7 @@ pub const BLOCKS_IN_CHUNK: usize = CHUNK_WIDTH * CHUNK_DEPTH * CHUNK_HEIGHT;
 pub type ChunkBlocks = [Block; BLOCKS_IN_CHUNK];
 
 /// A 16x16x256 volume of space
+// TODO: Make this representation more efficient. Right now it's 64K
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Chunk {
     /// The blocks contained in this chunk

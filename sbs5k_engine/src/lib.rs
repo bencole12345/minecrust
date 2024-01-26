@@ -11,6 +11,7 @@ mod uniforms;
 mod window;
 
 pub mod events;
+pub mod game;
 pub mod inputs;
 pub mod lighting;
 pub mod model;

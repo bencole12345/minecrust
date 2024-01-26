@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use nalgebra::{Matrix4, Point3, Rotation3, Translation, Vector3};
 
+// TODO: Unify with higher-level types
 /// Encodes the position of the camera in the game world
 pub struct CameraPosition {
     /// Camera's world coordinates in (x, y, z) form
