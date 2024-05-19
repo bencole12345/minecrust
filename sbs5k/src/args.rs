@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::net;
 
-#[derive(Clone, Copy, Parser)]
+#[derive(Clone, Parser)]
 #[clap(author, version, about, long_about = None)]
 pub(crate) struct Args {
     #[clap(short, long, default_value_t = 10)]
@@ -23,6 +23,10 @@ pub(crate) struct Args {
     #[clap(long)]
     /// The address of the server
     pub server: Option<net::SocketAddr>,
+
+    #[clap(long)]
+    /// The username to log in with
+    pub username: Option<String>,
 }
 
 impl Args {

@@ -4,16 +4,15 @@ use std::sync::{mpsc, Arc, RwLock};
 
 use sbs5k_core::{chunk, geometry};
 
-use crate::loading;
-
 pub(crate) enum Event {
     EndGame,
 
-    ChunkLoaded(loading::ChunkLoadResult),
+    ChunkLoaded(chunk::ChunkLoadResult),
 
     PlayerChangedPosition(geometry::EntityPosition),
-    PlayerEnteredNewChunk(chunk::ChunkCoordinate),
-    // TODO: MoveOtherPlayer, RotateOtherPlayer once we have multiplayer
+    PlayerEnteredNewChunk(chunk::ChunkCoordinate), // TODO: Get rid, this can be inferred from listening to PlayerChangedPosition messages
+
+                                                   // TODO: MoveOtherPlayer, RotateOtherPlayer once we have multiplayer
 }
 
 #[derive(Clone)]

@@ -6,15 +6,10 @@ use sbs5k_core::chunk;
 use crate::event::Event;
 use crate::{args, event};
 
-pub(crate) enum ChunkLoadRequest {
+pub enum ChunkLoadRequest {
     InitialLoad,
     ChunkChangeLoad(chunk::ChunkCoordinate),
     Stop,
-}
-
-pub(crate) struct ChunkLoadResult {
-    pub chunk: Box<chunk::Chunk>,
-    pub coordinate: chunk::ChunkCoordinate,
 }
 
 struct ChunkLoaderWorker {
@@ -77,7 +72,7 @@ impl ChunkLoaderWorker {
         let mut load_chunk = |i, j| {
             let coordinate = chunk::ChunkCoordinate { i, j };
             let chunk = self.chunk_source.get_chunk_at(coordinate);
-            let result = ChunkLoadResult { coordinate, chunk };
+            let result = chunk::ChunkLoadResult { coordinate, chunk };
             self.event_submitter
                 .submit_event(Event::ChunkLoaded(result));
         };
@@ -137,7 +132,7 @@ impl ChunkLoaderWorker {
 
         for coordinate in coordinates_to_load {
             let chunk = self.chunk_source.get_chunk_at(coordinate);
-            let result = ChunkLoadResult { coordinate, chunk };
+            let result = chunk::ChunkLoadResult { coordinate, chunk };
             self.event_submitter
                 .submit_event(Event::ChunkLoaded(result));
         }

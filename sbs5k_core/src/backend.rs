@@ -1,72 +1,105 @@
+// TODO: Rename this file to backend_api
 use serde::{Deserialize, Serialize};
 
 use crate::{chunk, geometry};
 
 /// A token type offered by the server upon successful login. The client must include this token in all future requests: it uniquely identifies the session.
-pub type Token = u64;
+pub type PlayerID = u64;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Client2Server {
+pub mod c2s {
+    use super::*;
+
     /// The initial login message
-    Login {
-        username: String,
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct LoginMsg {
+        pub username: String,
         // TODO: Include some kind of identifier (git hash?) so we can detect mismatches
-    },
+    }
 
     /// End the session. The client doesn't really care about this, but it lets the server free up resources without waiting for the client to time out
-    Logout {
-        token: Token,
-    },
-
-    Heartbeat {
-        token: Token,
-    },
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct LogoutMsg {
+        pub player_id: PlayerID,
+    }
 
     /// Inform the server that the player's location (position or orientation) has changed
-    NotifyNewPosition {
-        token: Token,
-        position: geometry::EntityPosition,
-    },
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct NotifyNewPositionMsg {
+        pub player_id: PlayerID,
+        pub position: geometry::EntityPosition,
+    }
 
     /// Request to load a set of chunks
-    LoadChunksPls {
-        token: Token,
-        coordinate: chunk::ChunkCoordinate,
-    },
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct LoadChunksPlsMsg {
+        pub token: PlayerID,
+        pub coordinate: chunk::ChunkCoordinate,
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum Server2Client {
+pub enum Client2ServerMsg {
+    Login(c2s::LoginMsg),
+    Logout(c2s::LogoutMsg),
+    NotifyNewPosition(c2s::NotifyNewPositionMsg),
+    LoadChunksPls(c2s::LoadChunksPlsMsg),
+}
+
+impl Client2ServerMsg {
+    pub fn to_buf(&self) -> Vec<u8> {
+        // TODO: Consider allowing caller to pass in the buffer to use
+        bincode::serialize(self).expect("Bad Client2Server message")
+    }
+
+    pub fn from_buf(buf: &[u8]) -> Self {
+        bincode::deserialize(buf).expect("Bad Client2Server message")
+    }
+}
+
+pub mod s2c {
+    use super::*;
+
     /// Returned on receipt of a successful login
-    OnLoginSuccess {
-        token: Token,
-        start_position: geometry::EntityPosition,
-    },
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct OnLoginSuccessMsg {
+        pub token: PlayerID,
+        pub start_position: geometry::EntityPosition,
+    }
 
-    OnLoginRejected {
-        reason: String,
-    },
+    /// Returned when a login is rejected, e.g. because that user is already logged in
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct OnLoginRejectedMsg {
+        pub reason: String,
+    }
 
-    OtherPlayerMoved {
-        player_id: u32,
-        new_position: geometry::EntityPosition,
-    },
+    /// A chunk that was requested by a client
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct ChunkLoadedUrWelcomeMsg {
+        pub chunk_load_result: chunk::ChunkLoadResult,
+    }
 
-    ChunkLoadedUrWelcome {
-        chunk: Box<chunk::Chunk>,
-        coordinate: chunk::ChunkCoordinate,
-    },
+    // TODO: Implement
+    // #[derive(Serialize, Deserialize, Debug)]
+    // pub struct OtherPlayerMovedMsg {
+    //     player_id: u32,
+    //     new_position: geometry::EntityPosition,
+    // }
 }
 
-/// The primary message format from a client to the server
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Client2ServerMessage {
-    pub player_id: u32,
-    pub message: Client2Server,
+pub enum Server2ClientMsg {
+    OnLoginSuccess(s2c::OnLoginSuccessMsg),
+    OnLoginRejected(s2c::OnLoginRejectedMsg),
+    ChunkLoadedUrWelcome(s2c::ChunkLoadedUrWelcomeMsg),
 }
 
-/// The primary message format from the server to a client
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Server2ClientMessage {
-    pub message: Server2Client,
+impl Server2ClientMsg {
+    pub fn to_buf(&self) -> Vec<u8> {
+        // TODO: Consider allowing caller to pass in the buffer to use
+        bincode::serialize(self).expect("Bad Server2Client message")
+    }
+
+    pub fn from_buf(buf: &[u8]) -> Self {
+        bincode::deserialize(buf).expect("Bad Server2Client message")
+    }
 }

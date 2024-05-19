@@ -38,7 +38,7 @@ impl Default for Chunk {
 /// The `i` coordinate corresponds to its position in the x dimension; the `j` coordinate
 /// corresponds to its position in the z dimension. The index (0, 0) is the chunk that the player
 /// first spawns in.
-#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChunkCoordinate {
     pub i: i32,
     pub j: i32,
@@ -107,6 +107,12 @@ impl Chunk {
             false
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ChunkLoadResult {
+    pub chunk: Box<Chunk>,
+    pub coordinate: ChunkCoordinate,
 }
 
 #[cfg(test)]

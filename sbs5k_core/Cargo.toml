@@ -12,6 +12,7 @@ nalgebra = { version = "^0.32.2", features = ["serde-serialize"] }
 rand = "^0.8.5"
 serde = { version = "^1.0", features = ["derive"] }
 serde-big-array = "^0.5.1"
+# TODO: Confirm we need tokio in this crate
 tokio = { version = "^1.35", features = ["rt", "time", "macros", "net", "sync"] }
 
 [dev-dependencies]
