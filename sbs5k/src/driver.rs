@@ -31,7 +31,7 @@ pub(crate) struct Driver {
     fog_parameters: engine::FogParameters,
     event_queue: event::EventQueue,
     event_submitter: event::EventSubmitter,
-    state: Box<state::ClientState>,
+    state: Box<state::GameClientState>,
     time_tracker: engine::TimeTracker,
     window: engine::Window,
 }
@@ -41,7 +41,7 @@ impl Driver {
         config: Arc<args::Args>,
         chunk_source: Box<dyn chunk::ChunkSource + Send>,
     ) -> Self {
-        let state = Box::new(state::ClientState::new(&config));
+        let state = Box::new(state::GameClientState::new(&config));
 
         // We have two "running" flags, one in `state` and the other here. `state`'s flag is
         // intended for communicating to background threads (e.g. the chunk loading worker thread)

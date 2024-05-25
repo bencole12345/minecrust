@@ -10,8 +10,8 @@ use sbs5k_core::geometry;
 use crate::state::chunks_state::ChunksState;
 use crate::Args;
 
-/// The client's view of the world's state
-pub(crate) struct ClientState {
+/// The game client's view of the world's state
+pub(crate) struct GameClientState {
     /// The player's current position in the world
     pub player_position: Rc<RefCell<geometry::EntityPosition>>,
 
@@ -23,7 +23,7 @@ pub(crate) struct ClientState {
     pub is_live: Arc<RwLock<bool>>,
 }
 
-impl ClientState {
+impl GameClientState {
     pub(crate) fn new(config: &Args) -> Self {
         let location = na::Point3::new(8.0, 66.0, 8.0);
         let orientation = geometry::Orientation {
@@ -39,7 +39,7 @@ impl ClientState {
         let chunks_state = Rc::new(RefCell::new(ChunksState::new(config.render_distance)));
         let is_live = Arc::new(RwLock::new(true));
 
-        ClientState {
+        GameClientState {
             player_position,
             chunks_state,
             is_live,

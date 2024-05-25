@@ -5,13 +5,13 @@ use crate::networking::OnPacketCallback;
 use crate::updatable::Updatable;
 use std::{io, net};
 
-use sbs5k_core::backend;
-use sbs5k_core::backend::{c2s, s2c, Client2ServerMsg, Server2ClientMsg};
+use sbs5k_core::backend_api;
+use sbs5k_core::backend_api::{c2s, s2c, Client2ServerMsg, Server2ClientMsg};
 
 pub(crate) struct BackendConnection {
     conn: networking::AsyncConnection,
     event_submitter: event::EventSubmitter,
-    our_player_id: Option<backend::PlayerID>,
+    our_player_id: Option<backend_api::PlayerID>,
 }
 
 impl BackendConnection {

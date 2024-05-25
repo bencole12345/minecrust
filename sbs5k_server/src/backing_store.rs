@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use crate::player_state::PlayerState;
+use crate::state::PlayerState;
 
 use sbs5k_core::chunk;
 

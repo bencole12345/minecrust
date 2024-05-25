@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{chunk, geometry};
 
-/// A token type offered by the server upon successful login. The client must include this token in all future requests: it uniquely identifies the session.
+/// A token type offered by the server upon successful login. The client must include this token in
+/// all future requests: it uniquely identifies the session.
 pub type PlayerID = u64;
 
 pub mod c2s {
@@ -16,23 +17,20 @@ pub mod c2s {
         // TODO: Include some kind of identifier (git hash?) so we can detect mismatches
     }
 
-    /// End the session. The client doesn't really care about this, but it lets the server free up resources without waiting for the client to time out
+    /// End the session. The client doesn't really care about this, but it lets the server free up
+    /// resources without waiting for the client to time out
     #[derive(Serialize, Deserialize, Debug)]
-    pub struct LogoutMsg {
-        pub player_id: PlayerID,
-    }
+    pub struct LogoutMsg {}
 
     /// Inform the server that the player's location (position or orientation) has changed
     #[derive(Serialize, Deserialize, Debug)]
     pub struct NotifyNewPositionMsg {
-        pub player_id: PlayerID,
         pub position: geometry::EntityPosition,
     }
 
     /// Request to load a set of chunks
     #[derive(Serialize, Deserialize, Debug)]
     pub struct LoadChunksPlsMsg {
-        pub token: PlayerID,
         pub coordinate: chunk::ChunkCoordinate,
     }
 }
@@ -62,8 +60,8 @@ pub mod s2c {
     /// Returned on receipt of a successful login
     #[derive(Serialize, Deserialize, Debug)]
     pub struct OnLoginSuccessMsg {
-        pub token: PlayerID,
         pub start_position: geometry::EntityPosition,
+        // TODO: Info about other players
     }
 
     /// Returned when a login is rejected, e.g. because that user is already logged in
@@ -80,8 +78,16 @@ pub mod s2c {
 
     // TODO: Implement
     // #[derive(Serialize, Deserialize, Debug)]
+    // pub struct OtherPlayerJoinedMsg {
+    //     player_id: PlayerID,
+    //     username: String,
+    //     position: geometry::EntityPosition,
+    // }
+
+    // TODO: Implement
+    // #[derive(Serialize, Deserialize, Debug)]
     // pub struct OtherPlayerMovedMsg {
-    //     player_id: u32,
+    //     player_id: PlayerID,
     //     new_position: geometry::EntityPosition,
     // }
 }

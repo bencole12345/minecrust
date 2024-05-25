@@ -1,7 +1,7 @@
 use crate::args::Args;
-use crate::state::ClientState;
+use crate::state::GameClientState;
 
-pub(crate) fn print_debug_output(state: &ClientState, dt: f64, config: &Args) {
+pub(crate) fn print_debug_output(state: &GameClientState, dt: f64, config: &Args) {
     if config.debug_print_fps {
         println!("FPS: {}", 1.0 / dt);
     }
